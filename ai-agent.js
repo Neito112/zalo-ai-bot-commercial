@@ -36,6 +36,7 @@ import { graphMemory } from './services/graph-memory-engine.js';
 import { cognitiveReflection } from './services/cognitive-reflection.js';
 import { smartLifeAssistant } from './services/smart-life-assistant.js';
 import { hybridRetriever } from './services/hybrid-retrieval-engine.js';
+import { toolSelfHealing } from './services/tool-self-healing-engine.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -395,7 +396,8 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
       if (jsonMatch) {
         try {
           const parsed = JSON.parse(jsonMatch[0]);
-          const { tool, args = {} } = parsed;
+          let { tool, args = {} } = parsed;
+          args = toolSelfHealing.sanitizeAndCoerceArguments(tool, args);
 
           agentEvents.emit('tool_call', { tool, args, loop: loopCount });
 

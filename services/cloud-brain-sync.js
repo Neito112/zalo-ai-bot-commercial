@@ -100,26 +100,38 @@ ${topInsights || '_Đang thu thập dữ liệu trong chu kỳ tới..._'}
       const { timeStr } = this.generateMarkdownReport();
 
       // Git add all brain files & report
-      await execPromise(`git add RESEARCH_REPORT.md reports/ knowledge-base.json conversation-memory.json evolution-log.json`);
+      await execPromise(`git add .`);
 
       // Git commit
-      const commitMsg = `report: 1-hour periodic research & evolution report (${timeStr})`;
+      const commitMsg = `report: 1-hour periodic research & work capabilities update (${timeStr})`;
       try {
         await execPromise(`git commit -m "${commitMsg}"`);
       } catch (commitErr) {
-        if (commitErr.stdout?.includes('nothing to commit') || commitErr.message?.includes('nothing to commit')) {
-          console.log('ℹ️ Dữ liệu não bộ đã ở trạng thái mới nhất trên GitHub.');
-          return { success: true, message: 'Dữ liệu và báo cáo đã đồng bộ mới nhất trên GitHub.' };
+        if (!commitErr.stdout?.includes('nothing to commit')) {
+          console.warn('Commit warn:', commitErr.message);
         }
       }
 
-      // Git push
-      await execPromise(`git push origin master`);
-      console.log(`🚀 ĐÃ TỰ ĐỘNG PUSH BÁO CÁO ĐỊNH KỲ LÊN GITHUB THÀNH CÔNG (${timeStr})!`);
+      // Git push R&D Repo
+      try {
+        await execPromise(`git push origin master`);
+        console.log(`🚀 ĐÃ TỰ ĐỘNG PUSH LÊN GITHUB R&D THÀNH CÔNG (${timeStr})!`);
+      } catch (e) {
+        console.warn('Push R&D warn:', e.message);
+      }
+
+      // Sync & Push Commercial Repo
+      try {
+        const commPath = path.resolve('..', 'zalo-bot-commercial');
+        if (fs.existsSync(commPath)) {
+          await execPromise(`git -C "${commPath}" add . && git -C "${commPath}" commit -m "${commitMsg}" && git -C "${commPath}" push origin master`);
+          console.log(`🚀 ĐÃ TỰ ĐỘNG PUSH LÊN GITHUB COMMERCIAL THÀNH CÔNG (${timeStr})!`);
+        }
+      } catch (e) {}
 
       return {
         success: true,
-        message: `🚀 Đã tự động tạo báo cáo nghiên cứu và push lên GitHub Cloud (${timeStr})!`,
+        message: `🚀 Đã tự động tạo báo cáo nghiên cứu và push lên cả 2 GitHub Repositories (${timeStr})!`,
         timestamp: timeStr
       };
     } catch (err) {

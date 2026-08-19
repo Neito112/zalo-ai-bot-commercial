@@ -12,16 +12,16 @@ class AutonomousResearchEngine {
   constructor() {
     this.isRunning = false;
     this.cycleCount = 0;
-    this.intervalMs = 60000; // Mỗi 60 giây nghiên cứu 1 chu kỳ
+    this.intervalMs = 60000;
     this.timer = null;
     this.reportTimer = null;
     this.topics = [
-      'xu hướng trí tuệ nhân tạo và LLM mới nhất hôm nay',
-      'nghệ thuật giao tiếp tinh tế và tâm lý học hành vi con người',
-      'cách giải quyết vấn đề hiệu quả và tư duy phản biện',
-      'phát triển kỹ năng trợ lý cá nhân chuyên nghiệp và đẳng cấp',
-      'các sự kiện thời sự và kinh tế nổi bật trong ngày',
-      'công nghệ tự động hóa quy trình làm việc Google Workspace'
+      'kỹ thuật tự động hóa xử lý văn bản, tài liệu Excel và dữ liệu bảng biểu',
+      'thuật toán phân tích báo cáo tài chính, chứng khoán và dữ liệu kinh tế vĩ mô',
+      'quy trình làm việc tự động với Google Workspace, Gmail API và Google Calendar',
+      'kỹ thuật lập trình và thực thi code Python xử lý dữ liệu tự động cho trợ lý AI',
+      'kỹ năng bóc tách, tóm tắt và tổng hợp thông tin kinh doanh đa nguồn chuẩn xác',
+      'phương pháp quản lý dự án, nhắc việc thông minh và giám sát tiến độ tự động'
     ];
     this.knowledgeBase = this.loadKnowledge();
     this.evolutionLogs = this.loadEvolutionLogs();
@@ -36,8 +36,8 @@ class AutonomousResearchEngine {
             hybridRetriever.addDocumentsBatch(data.map(k => ({
               id: `kb_${k.id || k.topic}`,
               title: k.topic,
-              content: `${k.summary || ''} ${k.soulImprovement || ''} ${(k.keyFacts || []).join(' ')}`,
-              type: 'KNOWLEDGE'
+              content: `${k.summary || ''} ${k.practicalWorkflow || ''} ${(k.keyFacts || []).join(' ')}`,
+              type: 'WORK_CAPABILITY'
             })));
           }).catch(() => {});
         }
@@ -79,29 +79,29 @@ class AutonomousResearchEngine {
       timestamp
     });
 
-    console.log(`\n🔬 [VÒNG LẶP TIẾN HÓA #${this.cycleCount}] Đang nghiên cứu chủ đề: "${topic}"...`);
+    console.log(`\n💼 [VÒNG LẶP NÂNG CẤP NĂNG LỰC CÔNG VIỆC #${this.cycleCount}] Nghiên cứu giải pháp: "${topic}"...`);
 
     try {
-      // BƯỚC 1: Thu thập tri thức từ Internet
+      // BƯỚC 1: Thu thập tri thức thực chiến từ Internet
       const searchData = await searchWeb(topic, 3);
 
-      // BƯỚC 2: AI tự phân tích, đúc kết bài học và cải tiến tư duy
-      const prompt = `Bạn là Bộ Não Nghiên Cứu & Tiến Hóa của Trợ Lý AI Toàn Năng.
-Dưới đây là dữ liệu tra cứu mới nhất về chủ đề: "${topic}".
+      // BƯỚC 2: AI tự phân tích và đúc kết quy trình xử lý công việc
+      const prompt = `Bạn là Động Cơ Nâng Cấp Năng Lực Công Việc (Work Execution Optimizer) của Trợ Lý AI.
+Dưới đây là dữ liệu kỹ thuật và giải pháp thu thập được về: "${topic}".
 
-DỮ LIỆU THU THẬP ĐƯỢC:
+DỮ LIỆU KỸ THUẬT:
 ${searchData}
 
-NHIỆM VỤ TIẾN HÓA CỦA BẠN:
-1. Đúc kết 2-3 kiến thức/sự thật quan trọng nhất cần nạp vào bộ nhớ vĩnh viễn.
-2. Đề xuất 1 bài học thực tế để bot giao tiếp tinh tế, thông minh và có hồn hơn với người dùng.
+NHIỆM VỤ THỰC CHIẾN:
+1. Trích xuất 2-3 quy tắc/kỹ thuật xử lý công việc thực tế cốt lõi (Actionable Business Logic).
+2. Đúc kết 1 quy trình làm việc chuẩn (Standard Operating Procedure) giúp Bot thực thi lệnh người dùng nhanh, chuẩn, không lỗi.
 
-Hãy trả về dưới định dạng JSON duy nhất:
+Hãy trả về DUY NHẤT một khối JSON:
 {
-  "summary": "Tóm tắt bài học đúc kết",
-  "keyFacts": ["Kiến thức 1", "Kiến thức 2"],
-  "soulImprovement": "Cách cải thiện cảm xúc/tinh tế cho Bot",
-  "iqScore": 140
+  "summary": "Tóm tắt giải pháp kỹ thuật / năng lực xử lý công việc",
+  "keyFacts": ["Quy tắc thực thi 1", "Quy tắc thực thi 2"],
+  "practicalWorkflow": "Quy trình thực hiện công việc chuẩn xác",
+  "iqScore": 150
 }`;
 
       const { text: responseText } = await generateContentWithFailover(prompt);

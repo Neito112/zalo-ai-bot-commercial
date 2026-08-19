@@ -11,6 +11,7 @@ import { callDynamicMcpTool } from './services/dynamic-mcp-runner.js';
 import { visionIntelligence } from './services/vision-intelligence.js';
 import { backgroundScheduler } from './services/background-task-scheduler.js';
 import { multitaskOrchestrator } from './services/multitask-orchestrator.js';
+import { voiceIntelligence } from './services/voice-intelligence.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -93,7 +94,8 @@ HỆ THỐNG CÔNG CỤ TOÀN NĂNG (TỰ CHỦ HÀNH ĐỘNG & CHẠY NGẦM Đ
 14. manage_drive: { operation: "search", query?: string } -> Tìm kiếm file trên Google Drive.
 15. manage_sheets: { operation: "create", title?: string } -> Tạo bảng tính Google Sheets.
 16. manage_calendar: { operation: "agenda"|"quickAdd", text?: string } -> Xem lịch trình hoặc thêm sự kiện Google Calendar.
-17. save_user_memory: { key: "tên_thông_tin", value: "nội_dung_cần_nhớ" } -> Ghi nhớ sở thích, thói quen hay ghi chú quan trọng của người dùng.
+17. synthesize_speech: { text: "nội dung cần đọc thành giọng nói tiếng Việt" } -> Chuyển văn bản thành giọng nói AI truyền cảm và tạo file âm thanh MP3.
+18. save_user_memory: { key: "tên_thông_tin", value: "nội_dung_cần_nhớ" } -> Ghi nhớ sở thích, thói quen hay ghi chú quan trọng của người dùng.
 
 QUY TẮC PHẢN HỒI:
 - Khi cần dùng công cụ, xuất CHÍNH XÁC một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
@@ -375,6 +377,17 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
               toolOutput = `✅ Ảnh đã được tạo thành công! Lưu tại: ${imgRes.filePath}. Đường dẫn xem trước: ${imgRes.imageUrl}`;
             } else {
               toolOutput = `⚠️ Lỗi tạo ảnh: ${imgRes.error}`;
+            }
+          } else if (tool === 'synthesize_speech') {
+            const voiceRes = await voiceIntelligence.synthesizeSpeech(args.text || userPrompt);
+            if (voiceRes.success) {
+              generatedMediaResult = {
+                type: 'audio',
+                ...voiceRes
+              };
+              toolOutput = `✅ Giọng nói AI đã được tạo thành công! Tệp: ${voiceRes.filePath}. Nghe trực tiếp tại: ${voiceRes.audioUrl}`;
+            } else {
+              toolOutput = `⚠️ Lỗi tạo giọng nói: ${voiceRes.error}`;
             }
           } else if (tool === 'save_user_memory') {
             if (args.key && args.value) {

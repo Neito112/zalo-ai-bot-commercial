@@ -871,6 +871,16 @@
           loadingBubble.appendChild(img);
         }
 
+        if (data.media && data.media.audioUrl) {
+          const audio = document.createElement('audio');
+          audio.controls = true;
+          audio.src = data.media.audioUrl;
+          audio.style.marginTop = '10px';
+          audio.style.width = '100%';
+          loadingBubble.appendChild(document.createElement('br'));
+          loadingBubble.appendChild(audio);
+        }
+
         chatContainer.scrollTop = chatContainer.scrollHeight;
         await loadStatus();
       } catch (e) {

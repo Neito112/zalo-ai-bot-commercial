@@ -3,113 +3,108 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zalo AI Bot - Omnipotent Control Center</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>Zalo AI Bot - Control Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-primary: #0b0f19;
-      --bg-card: rgba(18, 26, 43, 0.75);
-      --bg-card-hover: rgba(26, 38, 64, 0.85);
-      --border-color: rgba(255, 255, 255, 0.08);
-      --border-accent: rgba(99, 102, 241, 0.3);
+      --bg-dark: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.3);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --accent-primary: #6366f1;
-      --accent-secondary: #06b6d4;
-      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
       --success: #10b981;
-      --warning: #f59e0b;
       --danger: #ef4444;
-      --card-radius: 16px;
+      --warning: #f59e0b;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
 
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: var(--bg-primary);
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 50%);
-      background-attachment: fixed;
     }
 
-    /* Header */
-    header {
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Top Navbar */
+    .navbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 32px;
-      border-bottom: 1px solid var(--border-color);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: rgba(11, 15, 25, 0.8);
+      padding: 16px 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
-    .brand {
+    .logo-box {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .logo-badge {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: var(--accent-gradient);
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
-    }
-
-    .brand h1 {
       font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
+      box-shadow: 0 4px 15px var(--accent-glow);
     }
 
-    .brand p {
-      font-size: 12px;
+    .logo-text h1 {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #fff, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-text p {
+      font-size: 11.5px;
       color: var(--text-muted);
     }
 
-    .status-actions {
-      display: flex;
+    .status-badge {
+      display: inline-flex;
       align-items: center;
-      gap: 16px;
-    }
-
-    .status-pill {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
+      gap: 6px;
+      padding: 6px 12px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.15);
       color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
-    .status-pill.stopped {
-      background: rgba(239, 68, 68, 0.1);
-      border-color: rgba(239, 68, 68, 0.3);
+    .status-badge.stopped {
+      background: rgba(239, 68, 68, 0.15);
       color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.3);
     }
 
     .status-dot {
@@ -117,620 +112,441 @@
       height: 8px;
       border-radius: 50%;
       background: currentColor;
-      box-shadow: 0 0 10px currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    /* Server Controls Bar */
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .server-metrics {
+      display: flex;
+      gap: 20px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    .server-metrics strong {
+      color: var(--text-main);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
     }
 
     .btn {
-      padding: 8px 18px;
-      border-radius: 10px;
-      border: none;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
       transition: all 0.2s ease;
-      font-family: inherit;
     }
 
     .btn-start {
-      background: #10b981;
+      background: linear-gradient(135deg, #10b981, #059669);
       color: white;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
     }
-    .btn-start:hover { background: #059669; transform: translateY(-1px); }
+    .btn-start:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
 
     .btn-stop {
-      background: #ef4444;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
       color: white;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
     }
-    .btn-stop:hover { background: #dc2626; transform: translateY(-1px); }
+    .btn-stop:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(239, 68, 68, 0.4); }
 
     .btn-restart {
       background: rgba(255, 255, 255, 0.08);
       color: var(--text-main);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--card-border);
     }
-    .btn-restart:hover { background: rgba(255, 255, 255, 0.15); }
+    .btn-restart:hover { background: rgba(255, 255, 255, 0.12); }
 
     .btn-primary {
-      background: var(--accent-gradient);
+      background: linear-gradient(135deg, var(--accent), #4f46e5);
       color: white;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+      box-shadow: 0 4px 14px var(--accent-glow);
     }
-    .btn-primary:hover {
-      opacity: 0.95;
-      transform: translateY(-1px);
-    }
+    .btn-primary:hover { transform: translateY(-1px); }
 
-    /* Container Grid */
-    .container {
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 24px 32px;
-      display: grid;
-      grid-template-columns: 360px 1fr 420px;
-      gap: 24px;
-      flex: 1;
-    }
-
-    @media (max-width: 1200px) {
-      .container {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Cards */
+    /* Configuration Card */
     .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--card-radius);
-      padding: 20px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       display: flex;
       flex-direction: column;
-      gap: 16px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      gap: 18px;
     }
 
     .card-title {
       font-size: 15px;
       font-weight: 700;
-      letter-spacing: -0.01em;
       display: flex;
       align-items: center;
       gap: 8px;
+      color: #a5b4fc;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
     }
 
-    /* Metrics Row */
-    .metrics-grid {
+    .form-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
 
-    .metric-box {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-color);
-      padding: 14px;
-      border-radius: 12px;
-    }
-
-    .metric-value {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--accent-secondary);
-      margin-top: 4px;
-    }
-
-    .metric-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* Forms */
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
-    .form-group label {
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+
+    label {
       font-size: 12px;
       font-weight: 600;
       color: var(--text-muted);
     }
 
-    input, textarea, select {
-      background: rgba(11, 15, 25, 0.8);
-      border: 1px solid var(--border-color);
+    input, select, textarea {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--card-border);
       border-radius: 10px;
       padding: 10px 14px;
       color: var(--text-main);
       font-size: 13px;
-      font-family: inherit;
       outline: none;
-      transition: all 0.2s;
+      transition: border-color 0.2s;
     }
 
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--accent-primary);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-glow);
     }
 
-    /* Keys List */
+    /* Key Pool Tags */
     .keys-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      max-height: 180px;
+      gap: 6px;
+      max-height: 110px;
       overflow-y: auto;
-      padding-right: 4px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 8px;
     }
 
     .key-item {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      background: rgba(255, 255, 255, 0.03);
-      padding: 8px 12px;
-      border-radius: 8px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 6px 10px;
+      border-radius: 6px;
       font-size: 12px;
       font-family: 'JetBrains Mono', monospace;
     }
 
-    .key-badge {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: rgba(99, 102, 241, 0.2);
-      color: #a5b4fc;
-    }
-
-    /* Chat Section */
-    .chat-messages {
-      flex: 1;
-      min-height: 380px;
-      max-height: 480px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      padding-right: 8px;
-    }
-
-    .message-bubble {
-      max-width: 85%;
-      padding: 12px 16px;
-      border-radius: 14px;
-      font-size: 13.5px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-    }
-
-    .message-user {
-      align-self: flex-end;
-      background: var(--accent-primary);
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
-
-    .message-ai {
-      align-self: flex-start;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-color);
-      border-bottom-left-radius: 4px;
-    }
-
-    .message-img {
-      max-width: 100%;
-      border-radius: 10px;
-      margin-top: 8px;
-      border: 1px solid var(--border-color);
-    }
-
-    .chat-input-row {
-      display: flex;
-      gap: 10px;
-    }
-
-    /* Console Terminal */
-    .terminal-box {
-      flex: 1;
-      background: #060911;
-      border: 1px solid var(--border-color);
+    /* Live Logs Stream */
+    .logs-box {
+      background: #040711;
+      border: 1px solid var(--card-border);
       border-radius: 12px;
       padding: 14px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      line-height: 1.6;
-      color: #38bdf8;
+      font-size: 11.5px;
+      color: #93c5fd;
+      height: 180px;
       overflow-y: auto;
-      max-height: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
 
     .log-line {
-      margin-bottom: 4px;
-      word-break: break-all;
+      display: flex;
+      gap: 8px;
+      line-height: 1.4;
     }
 
-    .log-time {
-      color: var(--text-muted);
-      margin-right: 6px;
+    .log-time { color: #64748b; }
+    .log-msg { color: #e2e8f0; }
+
+    /* GitHub Lock Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
     }
 
-    .log-tool {
-      color: #f59e0b;
-      font-weight: 600;
-    }
-
-    .log-error {
-      color: #ef4444;
-    }
-
-    .log-success {
-      color: #10b981;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.3);
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 440px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     }
   </style>
 </head>
-  <!-- GitHub Auth Lock Modal Overlay -->
-  <div id="authLockOverlay" style="display: none; position: fixed; inset: 0; background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(20px); z-index: 1000; justify-content: center; align-items: center;">
-    <div style="background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: 20px; padding: 32px; max-width: 480px; width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.5); text-align: center; display: flex; flex-direction: column; gap: 18px;">
-      <div style="font-size: 42px;">🔒</div>
-      <div>
-        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px;">Bản Cá Nhân Riêng Tư - Xác Thực GitHub</h2>
-        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">Ứng dụng này yêu cầu đăng nhập tài khoản GitHub chính chủ (<strong>Neito112</strong>) để mở khóa quyền điều khiển Bot & Đám mây Não bộ trên thiết bị mới.</p>
-      </div>
+<body>
 
-      <div class="form-group" style="text-align: left;">
-        <label>GitHub Personal Access Token</label>
-        <input type="password" id="authGithubToken" placeholder="Dán mã ghp_... vào đây" style="width: 100%;">
-        <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">
-          Tạo token với quyền repo tại: <a href="https://github.com/settings/tokens" target="_blank" style="color: #38bdf8; text-decoration: none;">GitHub Token Settings ↗</a>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" style="justify-content: center; padding: 12px; font-size: 14px;" onclick="verifyAndUnlockGithub()">
-        🔐 Xác Thực & Mở Khóa Thiết Bị
+  <!-- GitHub Auth Guard Modal -->
+  <div id="githubAuthModal" class="modal-overlay">
+    <div class="modal-box">
+      <div style="font-size: 40px; margin-bottom: 12px;">🔒</div>
+      <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Xác Thực Thiết Bị R&D</h2>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">
+        Hệ thống được bảo vệ bởi GitHub Cloud Guard. Nhập GitHub Personal Access Token để mở khóa bảng điều khiển.
+      </p>
+      <input type="password" id="authGithubToken" placeholder="ghp_xxxxxxxxxxxx" style="width: 100%; margin-bottom: 12px;">
+      <div id="authErrorMsg" style="color: var(--danger); font-size: 11.5px; margin-bottom: 14px;"></div>
+      <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="verifyAndUnlockGithub()">
+        🔓 Xác Thực & Mở Khóa
       </button>
-
-      <div id="authErrorMsg" style="font-size: 12px; color: #ef4444; min-height: 18px;"></div>
     </div>
   </div>
 
-  <!-- Header -->
-  <header>
-    <div class="brand">
-      <div class="logo-badge">🧠</div>
-      <div>
-        <h1>Zalo AI Bot • Omnipotent Brain</h1>
-        <p>Trung Tâm Nghiên Cứu, Điều Khiển & Phát Triển Trí Tuệ Nhân Tạo Tự Chủ</p>
-      </div>
-    </div>
-
-    <div class="status-actions">
-      <div id="githubUserBadge" style="display: none; align-items: center; gap: 6px; font-size: 12px; padding: 5px 12px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc;">
-        <span>👤</span> <strong id="githubUsername">Neito112</strong>
-      </div>
-      <div id="statusPill" class="status-pill">
-        <span class="status-dot"></span>
-        <span id="statusText">ĐANG HOẠT ĐỘNG</span>
-      </div>
-      <button id="btnStart" class="btn btn-start" onclick="startBot()">▶ Bật Bot</button>
-      <button id="btnStop" class="btn btn-stop" onclick="stopBot()">⏹ Tắt Bot</button>
-      <button id="btnRestart" class="btn btn-restart" onclick="restartBot()">🔄 Khởi động lại</button>
-    </div>
-  </header>
-
-  <!-- Main Grid -->
   <div class="container">
     
-    <!-- Left Column: Config & Key Pool -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">🔑 Nguồn API & Cấu Hình Não Bộ</div>
-      </div>
-
-      <!-- Metrics -->
-      <div class="metrics-grid">
-        <div class="metric-box">
-          <div class="metric-label">API Keys Pool</div>
-          <div id="metricKeysCount" class="metric-value">0</div>
-        </div>
-        <div class="metric-box">
-          <div class="metric-label">Mô Hình Chính</div>
-          <div id="metricModel" class="metric-value" style="font-size: 14px; margin-top: 8px;">2.0-Flash</div>
-        </div>
-        <div class="metric-box">
-          <div class="metric-label">Tin Nhắn Nhận</div>
-          <div id="metricReceived" class="metric-value">0</div>
-        </div>
-        <div class="metric-box">
-          <div class="metric-label">Công Cụ Đã Chạy</div>
-          <div id="metricTools" class="metric-value">0</div>
+    <!-- Top Navbar -->
+    <header class="navbar">
+      <div class="logo-box">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">
+          <h1>Zalo AI Bot Omnipotent</h1>
+          <p>Bảng Điều Khiển Cấu Hình & Máy Chủ AI</p>
         </div>
       </div>
 
-      <!-- AI Model Provider Selector -->
-      <div class="form-group">
-        <label>Nguồn Xử Lý AI (Model Provider)</label>
-        <select id="selectProvider" onchange="toggleProviderUI()">
-          <option value="gemini">🌟 Google Gemini (Cloud API - Siêu tốc)</option>
-          <option value="local">💻 Local Model Cục Bộ (Ollama / LM Studio / Offline)</option>
-          <option value="hybrid">⚡ Hybrid Failover (Ưu tiên Local -> Fallback Gemini)</option>
-        </select>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span id="statusBadge" class="status-badge">
+          <span class="status-dot"></span>
+          <span id="statusText">Đang Kết Nối...</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- Server Control Bar -->
+    <div class="controls-bar">
+      <div class="server-metrics">
+        <div>Bot: <strong id="botName">Đang tải...</strong></div>
+        <div>Ping: <strong id="pingVal">-- ms</strong></div>
+        <div>RAM: <strong id="ramVal">-- MB</strong></div>
+        <div>Model: <strong id="activeModelBadge">Gemini 2.0</strong></div>
       </div>
 
-      <!-- Local Model Settings (Hiển thị khi chọn Local hoặc Hybrid) -->
-      <div id="localModelSection" style="display: none; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 14px; flex-direction: column; gap: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 700; font-size: 12px; color: #60a5fa;">💻 Cấu Hình Máy Chủ Local Model</span>
-          <span style="font-size: 10px; color: #93c5fd;">OpenAI Compatible</span>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label style="font-size: 11px;">Endpoint API Cục Bộ</label>
-          <input type="text" id="localEndpoint" value="http://localhost:11434/v1" placeholder="http://localhost:11434/v1">
-          <div style="display: flex; gap: 6px; margin-top: 4px;">
-            <button class="btn btn-restart" style="padding: 2px 6px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:11434/v1')">Ollama</button>
-            <button class="btn btn-restart" style="padding: 2px 6px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:1234/v1')">LM Studio</button>
-            <button class="btn btn-restart" style="padding: 2px 6px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:8080/v1')">LocalAI</button>
-          </div>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label style="font-size: 11px;">Tên Model Cục Bộ</label>
+      <div class="btn-group">
+        <button class="btn btn-start" onclick="startBot()">🟢 Bật Server</button>
+        <button class="btn btn-stop" onclick="stopBot()">🛑 Tắt Server</button>
+        <button class="btn btn-restart" onclick="restartBot()">🔄 Khởi Động Lại</button>
+      </div>
+    </div>
+
+    <!-- Main Configuration Card: API & AI Model Setup -->
+    <main class="card">
+      <div class="card-title">
+        ⚙️ Cấu Hình API & Nguồn Não Bộ AI (Cloud / Local)
+      </div>
+
+      <div class="form-grid">
+        
+        <!-- Zalo Bot Token -->
+        <div class="form-group full-width">
+          <label>Zalo Bot Token</label>
           <div style="display: flex; gap: 8px;">
-            <input type="text" id="localModelName" value="llama3" placeholder="llama3, qwen2.5, deepseek-r1:7b..." style="flex: 1;">
-            <button class="btn btn-primary" style="padding: 6px 10px; font-size: 11px;" onclick="discoverLocalModels()">🔍 Quét Models</button>
-          </div>
-          <div id="localModelsDiscoverStatus" style="font-size: 10.5px; color: var(--text-muted); margin-top: 4px;"></div>
-        </div>
-      </div>
-
-      <!-- Key Manager (Gemini Cloud) -->
-      <div id="geminiKeysSection">
-        <div class="form-group">
-          <label>Danh Sách Gemini API Keys Pool (Tự động xoay vòng)</label>
-          <div id="keysList" class="keys-list"></div>
-        </div>
-
-        <div class="form-group">
-          <label>Thêm API Key Mới</label>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="newApiKey" placeholder="Nhập key AIzaSy... hoặc AQ.Ab..." style="flex: 1;">
-            <button class="btn btn-primary" onclick="addApiKey()">+ Thêm</button>
+            <input type="password" id="zaloToken" placeholder="Nhập Zalo Bot Token từ BotFather (hoặc cấu hình trong .env)" style="flex: 1;">
+            <button class="btn btn-restart" onclick="toggleTokenVisibility()">👁️</button>
           </div>
         </div>
 
+        <!-- AI Model Provider -->
         <div class="form-group">
-          <label>Mô Hình Cloud Gemini Mặc Định</label>
+          <label>Nguồn Xử Lý AI (Model Provider)</label>
+          <select id="selectProvider" onchange="toggleProviderUI()">
+            <option value="gemini">🌟 Google Gemini (Cloud API - Siêu tốc)</option>
+            <option value="local">💻 Local Model Cục Bộ (Ollama / LM Studio)</option>
+            <option value="hybrid">⚡ Hybrid Failover (Ưu tiên Local -> Fallback Cloud)</option>
+          </select>
+        </div>
+
+        <!-- Gemini Model Selection -->
+        <div class="form-group" id="geminiModelGroup">
+          <label>Mô Hình Cloud Gemini</label>
           <select id="selectModel">
-            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Siêu nhanh & Thông minh)</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Siêu nhanh & Toàn năng)</option>
             <option value="gemini-flash-latest">Gemini Flash Latest</option>
             <option value="gemini-1.5-pro">Gemini 1.5 Pro (Suy luận sâu)</option>
             <option value="gemini-flash-lite-latest">Gemini Flash Lite</option>
           </select>
         </div>
+
+        <!-- Local Model Settings (Hiển thị khi chọn Local hoặc Hybrid) -->
+        <div id="localModelGroup" class="form-group full-width" style="display: none; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 12px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong style="font-size: 12px; color: #60a5fa;">💻 Cài Đặt Local Model (Ollama / LM Studio / llama.cpp)</strong>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-restart" style="padding: 2px 8px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:11434/v1')">Ollama</button>
+              <button class="btn btn-restart" style="padding: 2px 8px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:1234/v1')">LM Studio</button>
+              <button class="btn btn-restart" style="padding: 2px 8px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:8080/v1')">LocalAI</button>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Endpoint API Cục Bộ</label>
+              <input type="text" id="localEndpoint" value="http://localhost:11434/v1" placeholder="http://localhost:11434/v1">
+            </div>
+
+            <div class="form-group">
+              <label>Tên Model Cục Bộ</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="localModelName" value="llama3" placeholder="llama3, qwen2.5, deepseek-r1:7b..." style="flex: 1;">
+                <button class="btn btn-primary" style="padding: 8px 12px; font-size: 11px;" onclick="discoverLocalModels()">🔍 Quét Models</button>
+              </div>
+            </div>
+          </div>
+          <div id="localModelsDiscoverStatus" style="font-size: 11px; margin-top: 6px; color: var(--text-muted);"></div>
+        </div>
+
+        <!-- Gemini API Key Pool Manager -->
+        <div id="geminiKeysGroup" class="form-group full-width">
+          <label>Kho Khóa Gemini API Key Pool (Tự động xoay vòng khi hết quota)</label>
+          <div id="keysList" class="keys-list" style="margin-bottom: 8px;"></div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="newApiKey" placeholder="Dán Gemini API Key mới (AIzaSy...)" style="flex: 1;">
+            <button class="btn btn-primary" onclick="addApiKey()">+ Thêm Key</button>
+          </div>
+        </div>
+
+        <!-- Personality Prompt -->
+        <div class="form-group full-width">
+          <label>Prompt Tính Cách & Phong Cách Nói Chuyện (Soulful Human Persona)</label>
+          <textarea id="customPrompt" rows="3" placeholder="Tùy chỉnh tính cách của trợ lý AI (mặc định: trợ lý con người tự nhiên 100%, có hồn, thông minh, tinh tế)..."></textarea>
+        </div>
+
       </div>
 
-      <div class="form-group">
-        <label>Zalo Bot Token</label>
-        <input type="password" id="zaloToken" placeholder="Token Zalo Bot..." readonly>
-      </div>
-
-      <div class="form-group">
-        <label>Prompt Tính Cách (Soulful Persona)</label>
-        <textarea id="customPrompt" rows="3" placeholder="Tùy chỉnh tính cách của trợ lý AI..."></textarea>
-      </div>
-
-      <button class="btn btn-primary" onclick="saveFullConfig()" style="width: 100%; justify-content: center;">
-        💾 Lưu Cấu Hình Não Bộ
+      <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px;" onclick="saveFullConfig()">
+        💾 Lưu Cấu Hình Não Bộ & Khởi Chạy
       </button>
+    </main>
 
-      <!-- Cloud Brain Storage Card -->
-      <div style="background: rgba(99, 102, 241, 0.06); border: 1px solid var(--border-accent); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 700; font-size: 13px; color: #a5b4fc;">☁️ Đám Mây Não Bộ (GitHub Cloud)</span>
-          <a href="https://github.com/Neito112/zalo-ai-bot-omnipotent" target="_blank" style="color: #38bdf8; font-size: 11px; text-decoration: none;">GitHub Repo ↗</a>
-        </div>
-        <div style="font-size: 11.5px; color: var(--text-muted);">
-          Lưu trữ vĩnh viễn trí nhớ, tri thức và bài học tiến hóa trên GitHub Cloud.
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-primary" style="flex: 1; font-size: 11px; padding: 6px 10px; justify-content: center;" onclick="backupToCloud()">☁️ Sao Lưu</button>
-          <button class="btn btn-restart" style="flex: 1; font-size: 11px; padding: 6px 10px; justify-content: center;" onclick="syncFromCloud()">📥 Đồng Bộ</button>
-        </div>
-        <div id="cloudStatusMsg" style="font-size: 11px; color: #10b981; min-height: 16px;"></div>
+    <!-- Live Logs Console -->
+    <section class="card" style="padding: 18px 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 13px; font-weight: 700; color: #94a3b8;">📟 Nhật Ký Vận Hành Trực Tiếp (Live Server Logs)</span>
+        <button class="btn btn-restart" style="padding: 3px 8px; font-size: 11px;" onclick="clearLogs()">Xóa Log</button>
       </div>
-
-      <!-- Autonomous MCP Hub Card -->
-      <div style="background: rgba(6, 182, 212, 0.06); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 700; font-size: 13px; color: #38bdf8;">🔌 Trung Tâm Tự Kết Nối MCP</span>
-          <span id="mcpActiveCount" style="font-size: 11px; color: var(--success); font-weight: 700;">1 Active</span>
-        </div>
-        <div style="font-size: 11px; color: var(--text-muted);">
-          Chỉ cần nhắn tin: <em>"Kết nối MCP GitHub"</em> hoặc <em>"Cài Notion"</em>, Bot sẽ tự động tính toán, setup môi trường và kích hoạt!
-        </div>
-        <div id="mcpList" style="display: flex; flex-wrap: wrap; gap: 6px;">
-          <span style="font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">✓ Google Workspace</span>
-          <span style="font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); color: var(--text-muted);">+ GitHub</span>
-          <span style="font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); color: var(--text-muted);">+ Notion</span>
-          <span style="font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); color: var(--text-muted);">+ Slack</span>
-          <span style="font-size: 10px; padding: 3px 8px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); color: var(--text-muted);">+ PostgreSQL</span>
-        </div>
+      <div id="logsBox" class="logs-box">
+        <div class="log-line"><span class="log-time">[System]</span> <span class="log-msg">Máy chủ điều khiển đã sẵn sàng. Toàn bộ tương tác đa tác vụ, ảnh, giọng nói, tra cứu diễn ra trực tiếp trên tin nhắn Zalo.</span></div>
       </div>
-
-      <!-- Background Tasks & Autonomous Scout Card -->
-      <div style="background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 700; font-size: 13px; color: #fbbf24;">⚡ Tác Vụ Ngầm & Thám Hiểm Mạng</span>
-          <span id="tasksCountBadge" style="font-size: 11px; color: #fbbf24; font-weight: 700;">0 Tác vụ</span>
-        </div>
-        <div style="font-size: 11px; color: var(--text-muted);">
-          Bot tự động chạy ngầm các lịch nhắc nhở, kiểm tra tin tức và chủ động nhắn tin Zalo khi có thông tin quan trọng.
-        </div>
-        <div id="activeTasksList" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto;">
-          <div style="font-size: 11.5px; color: var(--text-muted);">Chưa có tác vụ ngầm nào đang chạy</div>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-restart" style="flex: 1; font-size: 11px; padding: 6px; justify-content: center;" onclick="triggerScoutRoam()">🧭 Thám Hiểm Mạng Ngay</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Middle Column: Live Chat Test Simulator -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">💬 Khung Thử Nghiệm Trí Tuệ & Phản Xạ AI</div>
-        <button class="btn btn-restart" style="padding: 4px 10px; font-size: 11px;" onclick="clearTestChat()">Xóa Chat</button>
-      </div>
-
-      <div id="chatMessages" class="chat-messages">
-        <div class="message-bubble message-ai">
-          👋 Chào bạn! Tôi là Trợ lý AI Bot Quản Đốc Toàn Năng. Tôi có thể tra cứu mạng thời gian thực, đọc trang web, tạo ảnh nghệ thuật, xử lý Gmail/Google Docs và trò chuyện thấu hiểu cùng bạn. Hãy thử giao việc cho tôi nhé!
-        </div>
-      </div>
-
-      <div id="imagePreviewContainer" style="display: none; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(99, 102, 241, 0.25);">
-        <img id="imagePreviewImg" style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px;" src="" alt="preview">
-        <span id="imagePreviewName" style="font-size: 11px; color: #a5b4fc; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
-        <button style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 14px;" onclick="removeAttachedImage()">✕</button>
-      </div>
-
-      <div class="chat-input-row">
-        <input type="file" id="chatImageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
-        <button class="btn btn-restart" style="padding: 8px 12px;" onclick="document.getElementById('chatImageInput').click()" title="Đính kèm hình ảnh để AI đọc và phân tích">📷</button>
-        <input type="text" id="chatInput" placeholder="Nhập câu hỏi hoặc đính kèm ảnh (VD: Đọc hóa đơn này, giải bài toán, tìm lỗi code trong ảnh...)" style="flex: 1;" onkeydown="if(event.key==='Enter') sendTestChat()">
-        <button id="btnSendChat" class="btn btn-primary" onclick="sendTestChat()">Gửi Lệnh 🚀</button>
-      </div>
-    </div>
-
-    <!-- Right Column: Real-time Live Log Stream & Evolution Card -->
-    <div style="display: flex; flex-direction: column; gap: 24px;">
-      
-      <!-- Evolution Card -->
-      <div class="card" style="border-color: var(--border-accent);">
-        <div class="card-header">
-          <div class="card-title" style="color: #a5b4fc;">
-            <span>🧬</span> Vòng Lặp Tiến Hóa Tự Chủ (Non-Stop)
-          </div>
-          <button class="btn btn-primary" style="padding: 4px 10px; font-size: 11px;" onclick="triggerResearchNow()">🔬 Học Ngay</button>
-        </div>
-
-        <div class="metrics-grid">
-          <div class="metric-box">
-            <div class="metric-label">Chu kỳ đã chạy</div>
-            <div id="metricCycles" class="metric-value">0</div>
-          </div>
-          <div class="metric-box">
-            <div class="metric-label">Tri thức thu nạp</div>
-            <div id="metricKnowledge" class="metric-value">0 bài</div>
-          </div>
-        </div>
-
-        <div style="font-size: 12px; line-height: 1.5; background: rgba(99, 102, 241, 0.08); border: 1px dashed rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 10px;">
-          <div style="font-weight: 700; color: #38bdf8; margin-bottom: 4px;">📖 Bài học đúc kết gần nhất:</div>
-          <div id="latestInsightText" style="color: var(--text-main); font-style: italic;">Đang thu thập và phân tích tri thức mới từ Internet...</div>
-        </div>
-      </div>
-
-      <!-- Logs Card -->
-      <div class="card" style="flex: 1;">
-        <div class="card-header">
-          <div class="card-title">⚡ Luồng Nhật Ký Thực Thi (Live Stream)</div>
-          <button class="btn btn-restart" style="padding: 4px 10px; font-size: 11px;" onclick="clearLogs()">Dọn Log</button>
-        </div>
-
-        <div id="terminal" class="terminal-box" style="max-height: 320px;">
-          <div class="log-line"><span class="log-time">[Hệ Thống]</span> <span class="log-success">Đã kết nối luồng sự kiện thời gian thực.</span></div>
-        </div>
-
-        <div style="font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span>Memory Sessions: <strong id="sessionsCount" style="color: var(--accent-secondary);">0</strong></span>
-          <button onclick="inspectMemory()" style="background: none; border: none; color: var(--accent-secondary); cursor: pointer; text-decoration: underline; font-size: 12px;">Xem Trí Nhớ</button>
-        </div>
-      </div>
-
-    </div>
+    </section>
 
   </div>
 
   <script>
-    // State
     let currentConfig = {};
-    let isBotRunning = true;
 
-    // Load initial data
-    async function loadStatus() {
+    // Check GitHub Auth Status
+    async function checkAuthStatus() {
       try {
-        const res = await fetch('/api/status');
+        const res = await fetch('/api/auth/status');
         const data = await res.json();
-        isBotRunning = data.isPolling && !data.isPaused;
-        
-        const statusPill = document.getElementById('statusPill');
-        const statusText = document.getElementById('statusText');
-        
-        if (isBotRunning) {
-          statusPill.className = 'status-pill';
-          statusText.innerText = 'ĐANG HOẠT ĐỘNG';
+        const modal = document.getElementById('githubAuthModal');
+        if (data.authenticated) {
+          modal.style.display = 'none';
         } else {
-          statusPill.className = 'status-pill stopped';
-          statusText.innerText = 'ĐÃ TẠM DỪNG';
+          modal.style.display = 'flex';
         }
+      } catch (e) {}
+    }
 
-        document.getElementById('metricReceived').innerText = data.stats?.messagesReceived || 0;
-        document.getElementById('metricTools').innerText = data.stats?.toolsUsed || 0;
-        document.getElementById('metricKeysCount').innerText = data.activeKeysCount || 0;
-        document.getElementById('metricModel').innerText = data.activeModel || '2.0-Flash';
-        document.getElementById('sessionsCount').innerText = data.sessionsCount || 0;
+    async function verifyAndUnlockGithub() {
+      const tokenInput = document.getElementById('authGithubToken');
+      const errorEl = document.getElementById('authErrorMsg');
+      const token = tokenInput.value.trim();
+
+      if (!token) {
+        errorEl.innerText = 'Vui lòng nhập GitHub Token của bạn.';
+        return;
+      }
+
+      errorEl.style.color = '#38bdf8';
+      errorEl.innerText = '⏳ Đang xác thực với GitHub API...';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          errorEl.style.color = '#10b981';
+          errorEl.innerText = '✅ Xác thực thành công! Đang mở khóa...';
+          setTimeout(() => { checkAuthStatus(); }, 600);
+        } else {
+          errorEl.style.color = '#ef4444';
+          errorEl.innerText = data.message || 'Xác thực thất bại.';
+        }
       } catch (e) {
-        console.error(e);
+        errorEl.style.color = '#ef4444';
+        errorEl.innerText = `Lỗi kết nối: ${e.message}`;
       }
     }
 
+    // Toggle Provider UI
     function toggleProviderUI() {
       const provider = document.getElementById('selectProvider').value;
-      const localSec = document.getElementById('localModelSection');
-      const geminiSec = document.getElementById('geminiKeysSection');
+      const localGroup = document.getElementById('localModelGroup');
+      const geminiKeys = document.getElementById('geminiKeysGroup');
+      const geminiModel = document.getElementById('geminiModelGroup');
 
       if (provider === 'local') {
-        localSec.style.display = 'flex';
-        geminiSec.style.display = 'none';
+        localGroup.style.display = 'flex';
+        geminiKeys.style.display = 'none';
+        geminiModel.style.display = 'none';
       } else if (provider === 'hybrid') {
-        localSec.style.display = 'flex';
-        geminiSec.style.display = 'block';
+        localGroup.style.display = 'flex';
+        geminiKeys.style.display = 'flex';
+        geminiModel.style.display = 'flex';
       } else {
-        localSec.style.display = 'none';
-        geminiSec.style.display = 'block';
+        localGroup.style.display = 'none';
+        geminiKeys.style.display = 'flex';
+        geminiModel.style.display = 'flex';
       }
     }
 
@@ -762,11 +578,41 @@
       }
     }
 
+    function toggleTokenVisibility() {
+      const input = document.getElementById('zaloToken');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // Load & Render Status
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        const badge = document.getElementById('statusBadge');
+        const text = document.getElementById('statusText');
+
+        if (data.isPolling) {
+          badge.className = 'status-badge';
+          text.innerText = 'Đang Chạy (Polling)';
+        } else {
+          badge.className = 'status-badge stopped';
+          text.innerText = 'Đã Dừng (Stopped)';
+        }
+
+        document.getElementById('botName').innerText = data.botName || 'Zalo AI Bot';
+        document.getElementById('pingVal').innerText = `${data.ping || '--'} ms`;
+        document.getElementById('ramVal').innerText = `${data.ram || '--'} MB`;
+        document.getElementById('activeModelBadge').innerText = data.activeModel || 'Gemini';
+      } catch (e) {}
+    }
+
+    // Load Config
     async function loadConfig() {
       try {
         const res = await fetch('/api/config');
         currentConfig = await res.json();
-        
+
         document.getElementById('selectProvider').value = currentConfig.provider || 'gemini';
         document.getElementById('selectModel').value = currentConfig.activeModel || 'gemini-2.0-flash';
         document.getElementById('localEndpoint').value = currentConfig.localEndpoint || 'http://localhost:11434/v1';
@@ -776,9 +622,7 @@
 
         toggleProviderUI();
         renderKeysList(currentConfig.apiKeys || []);
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
     }
 
     function renderKeysList(keys) {
@@ -786,7 +630,7 @@
       listEl.innerHTML = '';
 
       if (keys.length === 0) {
-        listEl.innerHTML = '<div style="color: var(--text-muted); font-size: 12px;">Chưa có key nào</div>';
+        listEl.innerHTML = '<div style="color: var(--text-muted); font-size: 11.5px;">Chưa có Gemini API Key nào</div>';
         return;
       }
 
@@ -795,7 +639,7 @@
         item.className = 'key-item';
         const masked = k.slice(0, 10) + '...' + k.slice(-6);
         item.innerHTML = `
-          <span><span class="key-badge">#${idx + 1}</span> ${masked}</span>
+          <span><span style="color: var(--accent); font-weight: 700;">#${idx + 1}</span> ${masked}</span>
           <button style="background: none; border: none; color: #ef4444; cursor: pointer;" onclick="deleteKey('${k}')">🗑️</button>
         `;
         listEl.appendChild(item);
@@ -815,14 +659,12 @@
       await saveConfigApi({ apiKeys: keys });
       input.value = '';
       await loadConfig();
-      await loadStatus();
     }
 
     async function deleteKey(keyToDelete) {
       const keys = (currentConfig.apiKeys || []).filter(k => k !== keyToDelete);
       await saveConfigApi({ apiKeys: keys });
       await loadConfig();
-      await loadStatus();
     }
 
     async function saveFullConfig() {
@@ -839,13 +681,7 @@
         localModelName,
         customSystemPrompt: prompt
       });
-      alert('✅ Đã lưu cấu hình Não Bộ & Local Model thành công!');
-    }
-
-    async function updateConfig() {
-      const model = document.getElementById('selectModel').value;
-      await saveConfigApi({ activeModel: model });
-      await loadStatus();
+      alert('✅ Đã lưu cấu hình API & Máy chủ AI thành công!');
     }
 
     async function saveConfigApi(payload) {
@@ -856,6 +692,7 @@
       });
     }
 
+    // Bot Controls
     async function startBot() {
       await fetch('/api/bot/start', { method: 'POST' });
       await loadStatus();
@@ -871,340 +708,49 @@
       await loadStatus();
     }
 
-    let attachedImageData = null;
-
-    function handleImageSelect(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const fullBase64 = e.target.result;
-        const mimeType = file.type || 'image/jpeg';
-        const rawBase64 = fullBase64.split(',')[1];
-
-        attachedImageData = {
-          mimeType,
-          data: rawBase64,
-          dataUrl: fullBase64,
-          name: file.name
-        };
-
-        document.getElementById('imagePreviewImg').src = fullBase64;
-        document.getElementById('imagePreviewName').innerText = `📷 ${file.name} (${Math.round(file.size / 1024)} KB)`;
-        document.getElementById('imagePreviewContainer').style.display = 'flex';
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function removeAttachedImage() {
-      attachedImageData = null;
-      document.getElementById('chatImageInput').value = '';
-      document.getElementById('imagePreviewContainer').style.display = 'none';
-    }
-
-    // Chat Simulator
-    async function sendTestChat() {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text && !attachedImageData) return;
-
-      input.value = '';
-      const chatContainer = document.getElementById('chatMessages');
-
-      // Add user message
-      const userBubble = document.createElement('div');
-      userBubble.className = 'message-bubble message-user';
-      if (text) {
-        userBubble.innerText = text;
-      }
-      if (attachedImageData) {
-        const userImg = document.createElement('img');
-        userImg.src = attachedImageData.dataUrl;
-        userImg.className = 'message-img';
-        userImg.style.maxWidth = '200px';
-        userImg.style.display = 'block';
-        userImg.style.marginTop = text ? '6px' : '0';
-        userBubble.appendChild(userImg);
-      }
-      chatContainer.appendChild(userBubble);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      // Loading bubble
-      const loadingBubble = document.createElement('div');
-      loadingBubble.className = 'message-bubble message-ai';
-      loadingBubble.innerText = attachedImageData ? '🔍 Đang quan sát hình ảnh và phân tích chi tiết...' : '🤔 Đang suy nghĩ và thực thi các công cụ...';
-      chatContainer.appendChild(loadingBubble);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-
-      const payload = {
-        prompt: text || 'Hãy quan sát thật tỉ mỉ bức ảnh này: đọc toàn bộ chữ (OCR), nhận diện sự vật, tình huống và phân tích chi tiết:'
-      };
-
-      if (attachedImageData) {
-        payload.image = {
-          mimeType: attachedImageData.mimeType,
-          data: attachedImageData.data
-        };
-        removeAttachedImage();
-      }
-
-      try {
-        const res = await fetch('/api/chat/test', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-
-        loadingBubble.innerText = data.text || 'Đã hoàn thành yêu cầu!';
-
-        if (data.media && data.media.imageUrl) {
-          const img = document.createElement('img');
-          img.src = data.media.imageUrl;
-          img.className = 'message-img';
-          loadingBubble.appendChild(document.createElement('br'));
-          loadingBubble.appendChild(img);
-        }
-
-        if (data.media && data.media.audioUrl) {
-          const audio = document.createElement('audio');
-          audio.controls = true;
-          audio.src = data.media.audioUrl;
-          audio.style.marginTop = '10px';
-          audio.style.width = '100%';
-          loadingBubble.appendChild(document.createElement('br'));
-          loadingBubble.appendChild(audio);
-        }
-
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        await loadStatus();
-      } catch (e) {
-        loadingBubble.innerText = `⚠️ Lỗi: ${e.message}`;
-      }
-    }
-
-    function clearTestChat() {
-      document.getElementById('chatMessages').innerHTML = '';
-    }
-
-    // Log Stream (SSE)
+    // Real-time Event Stream
     function connectLogStream() {
-      const eventSource = new EventSource('/api/logs/stream');
-      const terminal = document.getElementById('terminal');
+      const logsBox = document.getElementById('logsBox');
+      const es = new EventSource('/api/events');
 
-      eventSource.onmessage = (e) => {
+      es.onmessage = (event) => {
         try {
-          const data = JSON.parse(e.data);
+          const payload = JSON.parse(event.data);
           const line = document.createElement('div');
           line.className = 'log-line';
-          const time = new Date().toLocaleTimeString();
 
-          if (data.type === 'tool_call') {
-            line.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-tool">⚡ GỌI TOOL [${data.data.tool}]:</span> ${JSON.stringify(data.data.args)}`;
-          } else if (data.type === 'tool_result') {
-            line.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-success">✅ KẾT QUẢ [${data.data.tool}]:</span> ${data.data.resultPreview}...`;
-          } else if (data.type === 'user_message') {
-            line.innerHTML = `<span class="log-time">[${time}]</span> <span>📩 Tin nhắn từ <strong>${data.data.senderName}</strong>: "${data.data.prompt}"</span>`;
-          } else if (data.type === 'error' || data.type === 'tool_error' || data.type === 'model_error') {
-            line.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-error">❌ Lỗi: ${data.data.error || JSON.stringify(data.data)}</span>`;
+          const time = new Date(payload.timestamp).toLocaleTimeString();
+          let text = '';
+
+          if (payload.type === 'message_in') {
+            text = `📩 [Zalo In] ${payload.data.senderName}: "${payload.data.preview}"`;
+          } else if (payload.type === 'tool_call') {
+            text = `🛠️ [Tool] Thực thi ${payload.data.tool}...`;
+          } else if (payload.type === 'message_out') {
+            text = `💬 [Zalo Out -> ${payload.data.senderName}]: ${payload.data.preview}`;
+          } else if (payload.type === 'model_attempt') {
+            text = `🤖 [AI ${payload.data.provider || 'Model'}] Gọi ${payload.data.model}...`;
           } else {
-            line.innerHTML = `<span class="log-time">[${time}]</span> <span>ℹ️ ${data.type}: ${JSON.stringify(data.data || {})}</span>`;
+            text = `ℹ️ [${payload.type}] ${JSON.stringify(payload.data)}`;
           }
 
-          terminal.appendChild(line);
-          terminal.scrollTop = terminal.scrollHeight;
-        } catch (err) {}
+          line.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-msg">${text}</span>`;
+          logsBox.appendChild(line);
+          logsBox.scrollTop = logsBox.scrollHeight;
+        } catch (e) {}
       };
     }
 
     function clearLogs() {
-      document.getElementById('terminal').innerHTML = '';
-    }
-
-    async function inspectMemory() {
-      const res = await fetch('/api/memory');
-      const data = await res.json();
-      alert('🧠 Dữ liệu Trí nhớ hiện tại:\n' + JSON.stringify(data, null, 2));
-    }
-
-    // Research Stream Handler
-    async function loadResearchStatus() {
-      try {
-        const res = await fetch('/api/research/status');
-        const data = await res.json();
-        
-        document.getElementById('metricCycles').innerText = `#${data.cycleCount || 0}`;
-        document.getElementById('metricKnowledge').innerText = `${data.totalKnowledgeItems || 0} bài`;
-
-        if (data.latestInsights && data.latestInsights.length > 0) {
-          const top = data.latestInsights[0];
-          document.getElementById('latestInsightText').innerHTML = `<strong>${top.topic}:</strong> ${top.summary}<br><span style="color: #10b981; font-size: 11px;">✨ Đúc kết: ${top.soulImprovement || ''}</span>`;
-        }
-      } catch (e) {}
-    }
-
-    async function triggerResearchNow() {
-      const btn = event.target;
-      btn.innerText = '⏳ Đang học...';
-      btn.disabled = true;
-      try {
-        await fetch('/api/research/trigger', { method: 'POST' });
-        await loadResearchStatus();
-      } catch (e) {}
-      btn.innerText = '🔬 Học Ngay';
-      btn.disabled = false;
-    }
-
-    // Cloud Brain Sync Handlers
-    async function backupToCloud() {
-      const statusEl = document.getElementById('cloudStatusMsg');
-      statusEl.innerText = '⏳ Đang sao lưu lên GitHub Cloud...';
-      try {
-        const res = await fetch('/api/cloud/backup', { method: 'POST' });
-        const data = await res.json();
-        statusEl.innerText = data.message;
-      } catch (e) {
-        statusEl.innerText = `⚠️ Lỗi: ${e.message}`;
-      }
-    }
-
-    async function syncFromCloud() {
-      const statusEl = document.getElementById('cloudStatusMsg');
-      statusEl.innerText = '⏳ Đang kéo dữ liệu từ GitHub Cloud...';
-      try {
-        const res = await fetch('/api/cloud/sync', { method: 'POST' });
-        const data = await res.json();
-        statusEl.innerText = data.message;
-        await loadStatus();
-        await loadResearchStatus();
-      } catch (e) {
-        statusEl.innerText = `⚠️ Lỗi: ${e.message}`;
-      }
-    }
-
-    // GitHub Auth Guard Handlers
-    async function checkAuthStatus() {
-      try {
-        const res = await fetch('/api/auth/status');
-        const data = await res.json();
-        const overlay = document.getElementById('authLockOverlay');
-        const userBadge = document.getElementById('githubUserBadge');
-        const usernameEl = document.getElementById('githubUsername');
-
-        if (data.isLocked) {
-          overlay.style.display = 'flex';
-          userBadge.style.display = 'none';
-        } else {
-          overlay.style.display = 'none';
-          userBadge.style.display = 'inline-flex';
-          usernameEl.innerText = data.username || 'Neito112';
-        }
-      } catch (e) {}
-    }
-
-    async function verifyAndUnlockGithub() {
-      const tokenInput = document.getElementById('authGithubToken');
-      const errorEl = document.getElementById('authErrorMsg');
-      const token = tokenInput.value.trim();
-
-      if (!token) {
-        errorEl.innerText = 'Vui lòng nhập GitHub Token của bạn.';
-        return;
-      }
-
-      errorEl.style.color = '#38bdf8';
-      errorEl.innerText = '⏳ Đang xác thực với GitHub API...';
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          errorEl.style.color = '#10b981';
-          errorEl.innerText = '✅ Xác thực thành công! Đang mở khóa...';
-          setTimeout(() => {
-            checkAuthStatus();
-          }, 800);
-        } else {
-          errorEl.style.color = '#ef4444';
-          errorEl.innerText = data.message || 'Xác thực thất bại.';
-        }
-      } catch (e) {
-        errorEl.style.color = '#ef4444';
-        errorEl.innerText = `Lỗi kết nối: ${e.message}`;
-      }
-    }
-
-    // Background Tasks Handlers
-    async function loadTasksList() {
-      try {
-        const res = await fetch('/api/tasks/list');
-        const data = await res.json();
-        const listEl = document.getElementById('activeTasksList');
-        const badgeEl = document.getElementById('tasksCountBadge');
-
-        const activeTasks = data.active || [];
-        badgeEl.innerText = `${activeTasks.length} Tác vụ`;
-
-        if (activeTasks.length === 0) {
-          listEl.innerHTML = '<div style="font-size: 11px; color: var(--text-muted);">Không có tác vụ ngầm nào đang chạy</div>';
-          return;
-        }
-
-        listEl.innerHTML = '';
-        activeTasks.forEach(task => {
-          const item = document.createElement('div');
-          item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 5px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-size: 11px;';
-          const remainingMin = Math.max(0, Math.round((task.triggerTime - Date.now()) / 60000));
-          item.innerHTML = `
-            <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 170px;">
-              <strong style="color: #fbbf24;">${task.title}</strong>
-              <div style="font-size: 10px; color: var(--text-muted);">${task.type === 'once' ? `Sau ~${remainingMin}p` : `Mỗi ${task.intervalMs/60000}p`} (${task.senderName})</div>
-            </div>
-            <button style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 12px;" onclick="cancelTask('${task.id}')" title="Hủy tác vụ">✕</button>
-          `;
-          listEl.appendChild(item);
-        });
-      } catch (e) {}
-    }
-
-    async function cancelTask(taskId) {
-      try {
-        await fetch('/api/tasks/cancel', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskId })
-        });
-        await loadTasksList();
-      } catch (e) {}
-    }
-
-    async function triggerScoutRoam() {
-      const btn = event.target;
-      btn.innerText = '⏳ Đang tuần tra mạng...';
-      btn.disabled = true;
-      try {
-        await fetch('/api/scout/trigger', { method: 'POST' });
-      } catch (e) {}
-      btn.innerText = '🧭 Thám Hiểm Mạng Ngay';
-      btn.disabled = false;
+      document.getElementById('logsBox').innerHTML = '';
     }
 
     // Init
     checkAuthStatus();
     loadStatus();
     loadConfig();
-    loadResearchStatus();
-    loadTasksList();
     connectLogStream();
-    setInterval(loadStatus, 5000);
-    setInterval(loadResearchStatus, 8000);
-    setInterval(loadTasksList, 6000);
+    setInterval(loadStatus, 4000);
   </script>
 </body>
 </html>

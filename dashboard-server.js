@@ -70,7 +70,7 @@ app.get('/api/config', (req, res) => {
 
 // POST Config Update
 app.post('/api/config', (req, res) => {
-  const { provider, activeModel, localEndpoint, localModelName, customSystemPrompt, temperature, apiKeys } = req.body;
+  const { provider, activeModel, localEndpoint, localModelName, customSystemPrompt, temperature, apiKeys, zaloToken } = req.body;
 
   if (provider) botConfig.provider = provider;
   if (activeModel) botConfig.activeModel = activeModel;
@@ -79,11 +79,21 @@ app.post('/api/config', (req, res) => {
   if (customSystemPrompt !== undefined) botConfig.customSystemPrompt = customSystemPrompt;
   if (temperature !== undefined) botConfig.temperature = temperature;
 
-  if (Array.isArray(apiKeys)) {
-    // Read current .env
-    const envPath = path.resolve('.env');
-    let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
+  const envPath = path.resolve('.env');
+  let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
+  let envModified = false;
 
+  if (zaloToken && zaloToken.trim()) {
+    process.env.ZALO_BOT_TOKEN = zaloToken.trim();
+    if (envContent.includes('ZALO_BOT_TOKEN=')) {
+      envContent = envContent.replace(/ZALO_BOT_TOKEN=.*/, `ZALO_BOT_TOKEN=${zaloToken.trim()}`);
+    } else {
+      envContent += `\nZALO_BOT_TOKEN=${zaloToken.trim()}`;
+    }
+    envModified = true;
+  }
+
+  if (Array.isArray(apiKeys)) {
     // Remove existing GEMINI_API_KEY lines
     const lines = envContent.split('\n').filter(line => !line.trim().startsWith('GEMINI_API_KEY'));
 
@@ -93,11 +103,16 @@ app.post('/api/config', (req, res) => {
       process.env[`GEMINI_API_KEY_${index + 1}`] = key.trim();
     });
 
-    fs.writeFileSync(envPath, lines.join('\n'), 'utf-8');
+    envContent = lines.join('\n');
+    envModified = true;
     agentEvents.emit('config_updated', { message: 'Đã cập nhật danh sách API Keys mới' });
   }
 
-  res.json({ success: true, message: 'Cấu hình AI Model & Provider đã được cập nhật thành công!' });
+  if (envModified) {
+    fs.writeFileSync(envPath, envContent, 'utf-8');
+  }
+
+  res.json({ success: true, message: 'Cấu hình API & Máy chủ đã được cập nhật thành công!' });
 });
 
 // Discover Local Models (Ollama, LM Studio, etc.)

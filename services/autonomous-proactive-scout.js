@@ -107,12 +107,19 @@ NHIỆM VỤ:
           console.log(`✨ [SCOUT DISCOVERY] Tìm thấy tin giá trị: "${data.headline}"`);
           agentEvents.emit('scout_discovery', data);
 
+          // Tự động nạp tin tức giá trị vào Đồ thị tri thức (Graph Memory)
+          try {
+            const { graphMemory } = await import('./graph-memory-engine.js');
+            graphMemory.upsertNode(data.headline, 'SCOUT_INSIGHT', { briefing: data.briefing, topic });
+            graphMemory.addRelation(topic, 'PHÁT_HIỆN_MỚI', data.headline);
+          } catch (e) {}
+
           // Chủ động thông báo cho các người dùng đang đăng ký nhận tin (nếu có)
           const activeChatIds = Object.keys(this.subscribers);
           for (const chatId of activeChatIds) {
             const sub = this.subscribers[chatId];
             if (this.messageSenderCallback) {
-              const proactiveMsg = `💡 [CHUYÊN MỤC ĐIỂM TIN TỰ ĐỘNG]\n\nChào bạn ${sub.senderName}! Em vừa dạo một vòng trên mạng và thấy có tin tức này rất thú vị và hữu ích nè:\n\n📰 **${data.headline}**\n${data.briefing}\n\nChúc bạn một ngày làm việc thật nhiều cảm hứng nhé! ✨`;
+              const proactiveMsg = `💡 [ĐIỂM TIN TỰ ĐỘNG - ZALO AI ASSISTANT]\n\nChào ${sub.senderName}! Mình vừa cập nhật được một tin tức rất hay và hữu ích:\n\n📰 **${data.headline}**\n${data.briefing}\n\nChúc bạn có thêm nhiều cảm hứng làm việc nhé! ✨`;
               await this.messageSenderCallback(chatId, proactiveMsg).catch(() => {});
             }
           }

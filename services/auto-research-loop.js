@@ -30,7 +30,18 @@ class AutonomousResearchEngine {
   loadKnowledge() {
     try {
       if (fs.existsSync(KNOWLEDGE_BASE_FILE)) {
-        return JSON.parse(fs.readFileSync(KNOWLEDGE_BASE_FILE, 'utf-8'));
+        const data = JSON.parse(fs.readFileSync(KNOWLEDGE_BASE_FILE, 'utf-8'));
+        if (Array.isArray(data)) {
+          import('./hybrid-retrieval-engine.js').then(({ hybridRetriever }) => {
+            hybridRetriever.addDocumentsBatch(data.map(k => ({
+              id: `kb_${k.id || k.topic}`,
+              title: k.topic,
+              content: `${k.summary || ''} ${k.soulImprovement || ''} ${(k.keyFacts || []).join(' ')}`,
+              type: 'KNOWLEDGE'
+            })));
+          }).catch(() => {});
+        }
+        return data;
       }
     } catch (e) {}
     return [];

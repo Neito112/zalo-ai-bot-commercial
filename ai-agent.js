@@ -16,6 +16,7 @@ import { localModelClient } from './services/local-model-client.js';
 import { graphMemory } from './services/graph-memory-engine.js';
 import { cognitiveReflection } from './services/cognitive-reflection.js';
 import { smartLifeAssistant } from './services/smart-life-assistant.js';
+import { hybridRetriever } from './services/hybrid-retrieval-engine.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -333,10 +334,20 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
   // 2. Trích xuất ngữ cảnh đồ thị tri thức ngữ nghĩa (Graph Memory)
   const graphContext = graphMemory.retrieveRelevantGraphContext(userPrompt);
 
+  // 3. Truy xuất tài liệu & dữ kiện lai ghép (Hybrid BM25 + Semantic RAG)
+  let hybridRAGContext = '';
+  try {
+    const matchedDocs = hybridRetriever.hybridSearch(userPrompt, 3);
+    if (matchedDocs && matchedDocs.length > 0) {
+      hybridRAGContext = '\n[KHO DỮ LIỆU LAI GHÉP CHÍNH XÁC (HYBRID BM25 + SEMANTIC RAG)]:\n' + 
+        matchedDocs.map(d => `- [${d.document.title}]: ${d.document.content} (Độ khớp RRF: ${d.rrfScore})`).join('\n') + '\n';
+    }
+  } catch (e) {}
+
   const emotionDirective = personaEngine.getDynamicPersonaDirective(userPrompt, senderName);
   const systemPrompt = botConfig.customSystemPrompt || DEFAULT_SYSTEM_PROMPT;
 
-  const promptHeader = `${systemPrompt}${emotionDirective}${profileContext}${graphContext}${memoryContext}${researchKnowledgeContext}${historyText}${implicitTaskNotice}\nNgười dùng (${senderName}) vừa nhắn: "${userPrompt}"${attachedImagePart ? '\n[LƯU Ý ĐÍNH KÈM: Người dùng đã gửi kèm một bức ảnh. Bạn hãy quan sát kỹ từng chi tiết trong ảnh, đọc chữ (OCR) và trả lời thật thông minh, sắc bén và tận tình!]' : ''}`;
+  const promptHeader = `${systemPrompt}${emotionDirective}${profileContext}${graphContext}${hybridRAGContext}${memoryContext}${researchKnowledgeContext}${historyText}${implicitTaskNotice}\nNgười dùng (${senderName}) vừa nhắn: "${userPrompt}"${attachedImagePart ? '\n[LƯU Ý ĐÍNH KÈM: Người dùng đã gửi kèm một bức ảnh. Bạn hãy quan sát kỹ từng chi tiết trong ảnh, đọc chữ (OCR) và trả lời thật thông minh, sắc bén và tận tình!]' : ''}`;
 
   const conversation = [promptHeader];
   let loopCount = 0;

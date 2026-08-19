@@ -160,6 +160,10 @@ export class HybridRetrievalEngine {
       rrfScore: parseFloat(rrfScore.toFixed(6))
     })).filter(r => r.document);
   }
+
+  retrieve(query, topK = 5) {
+    return this.hybridSearch(query, topK);
+  }
 }
 
 export const hybridRetriever = new HybridRetrievalEngine();

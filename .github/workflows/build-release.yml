@@ -1,0 +1,60 @@
+name: Build & Publish Release
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Package Windows EXE
+        run: npm run build:exe
+
+      - name: Compress Binary
+        shell: powershell
+        run: |
+          Compress-Archive -Path "dist/Zalo AI Bot Control Center-win32-x64/*" -DestinationPath "Zalo-AI-Bot-Commercial-Windows-x64.zip" -Force
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master'
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
+          name: Zalo AI Bot Commercial Edition ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'Latest Release' }}
+          body: |
+            ## 🤖 Zalo AI Bot - Commercial Edition (Bản Thương Mại)
+            
+            Ứng dụng Windows Desktop (.EXE) chạy ngầm dưới System Tray dành cho khách hàng.
+            
+            ### 📦 Hướng dẫn nhanh:
+            1. Tải và giải nén tệp `Zalo-AI-Bot-Commercial-Windows-x64.zip`.
+            2. Mở file `Zalo AI Bot Control Center.exe`.
+            3. Dán Token Zalo Bot và Gemini API Key để bắt đầu sử dụng ngay.
+            4. Xem tài liệu hướng dẫn chi tiết tại file `HD_KET_NOI_ZALO_BOT.md`.
+          files: |
+            Zalo-AI-Bot-Commercial-Windows-x64.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

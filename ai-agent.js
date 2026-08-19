@@ -41,6 +41,7 @@ import { googleWorkspace } from './services/google-workspace-native.js';
 import { excelGenerator } from './services/excel-document-generator.js';
 import { getFinancialMarketData } from './services/financial-intelligence.js';
 import { documentIntelligence } from './services/document-intelligence.js';
+import { codeSandbox } from './services/code-sandbox-engine.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -127,7 +128,8 @@ HỆ THỐNG CÔNG CỤ THỰC THI (FUNCTION CALLING):
 18. generate_excel_file: { fileName: "Ten_File", sheetName?: "Trang1", dataRows: [ { "Cot1": "GiaTri1", "Cot2": "GiaTri2" } ] } -> Tạo tệp Excel .xlsx chứa dữ liệu bảng biểu, tài chính, báo cáo, danh sách thật gửi cho người dùng.
 19. get_financial_market_data: { symbol: "BTC|ETH|USD|EUR|..." } -> Tra cứu tỷ giá ngoại tệ USD/EUR/VND và giá tiền điện tử thời gian thực.
 20. extract_document_text: { filePath: "path/to/file.pdf|docx|txt|csv" } -> Đọc, bóc tách và trích xuất dữ liệu từ các tài liệu văn bản, bảng biểu trên máy.
-21. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
+21. execute_code_sandbox: { language: "javascript|python", code: "mã nguồn cần thực thi" } -> Chạy mã nguồn Python/JavaScript tính toán, xử lý dữ liệu chính xác 100%.
+22. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
 
 CÁCH THỨC XUẤT LỆNH:
 - Khi cần dùng công cụ: Xuất DUY NHẤT một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
@@ -503,6 +505,9 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
           } else if (tool === 'extract_document_text') {
             const docRes = await documentIntelligence.extractTextFromFile(args.filePath);
             toolOutput = docRes.success ? `Đã đọc tệp ${docRes.fileName} (${docRes.sizeKb}KB):\n\n${docRes.text}` : `Lỗi đọc tệp: ${docRes.error}`;
+          } else if (tool === 'execute_code_sandbox') {
+            const sandRes = await codeSandbox.executeCode(args.language || 'javascript', args.code || '');
+            toolOutput = sandRes.success ? `Kết quả thực thi ${sandRes.language}:\n${sandRes.stdout || '(Thực thi thành công, không có output ra màn hình)'}` : `Lỗi thực thi code: ${sandRes.error}\n${sandRes.stderr}`;
           } else if (tool === 'call_dynamic_mcp') {
             const { serverName, toolName, mcpArgs } = args;
             toolOutput = await callDynamicMcpTool(serverName, toolName, mcpArgs);

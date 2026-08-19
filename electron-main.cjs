@@ -17,29 +17,29 @@ function createTrayIcon() {
   return nativeImage.createFromDataURL(`data:image/png;base64,${iconBase64}`);
 }
 
-function startBackendServer() {
-  const serverScript = path.join(__dirname, 'dashboard-server.js');
-  console.log('🚀 Spawning Dashboard Server from Desktop App:', serverScript);
-
-  serverProcess = spawn(process.execPath, [serverScript], {
-    cwd: __dirname,
-    env: { ...process.env, PORT: PORT.toString() },
-    stdio: 'ignore',
-    windowsHide: true
-  });
-
-  serverProcess.on('error', (err) => {
-    console.error('Failed to start server process:', err);
-  });
+async function startBackendServer() {
+  try {
+    console.log('🚀 Starting Embedded Dashboard Server in Electron...');
+    await import('./dashboard-server.js');
+    console.log('✅ Embedded Dashboard Server started on port ' + PORT);
+  } catch (err) {
+    console.error('Failed to import dashboard-server.js, falling back to spawn:', err);
+    serverProcess = spawn(process.execPath, [path.join(__dirname, 'dashboard-server.js')], {
+      cwd: __dirname,
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', PORT: PORT.toString() },
+      stdio: 'ignore',
+      windowsHide: true
+    });
+  }
 }
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 840,
-    minWidth: 900,
+    width: 540,
+    height: 750,
+    minWidth: 480,
     minHeight: 650,
-    title: 'Zalo AI Bot - Omnipotent Control Center',
+    title: 'Zalo AI Bot Control Center',
     icon: createTrayIcon(),
     webPreferences: {
       nodeIntegration: false,
@@ -50,12 +50,13 @@ function createWindow() {
   });
 
   // Load dashboard
-  mainWindow.loadURL(SERVER_URL).catch(() => {
-    // Retry once if server is still spinning up
-    setTimeout(() => {
-      mainWindow.loadURL(SERVER_URL);
-    }, 2000);
-  });
+  const loadDashboard = () => {
+    mainWindow.loadURL(SERVER_URL).catch(() => {
+      setTimeout(loadDashboard, 1000);
+    });
+  };
+
+  setTimeout(loadDashboard, 800);
 
   // Minimize to tray on close
   mainWindow.on('close', (event) => {

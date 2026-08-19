@@ -50,18 +50,18 @@ export class CognitiveReflectionEngine {
    * Tự động làm sạch và tinh chỉnh câu từ nếu có dấu hiệu máy móc
    */
   sanitizeResponse(responseText, senderName = 'bạn') {
+    if (!responseText || typeof responseText !== 'string') return '';
     let clean = responseText;
 
-    // Loại bỏ các tiền tố máy móc
-    clean = clean.replace(/^(Dạ,|Vâng,|Kính gửi|Thưa quý khách,|Em xin chào).*?\n+/i, '');
+    // Loại bỏ khối JSON tool dư thừa nếu có
     clean = clean.replace(/\{[\s\S]*?"tool"[\s\S]*?\}/g, '').trim();
 
-    // Nếu câu quá cụt lủn do lỗi hệ thống
-    if (clean.length < 5) {
-      clean = `Mình đã ghi nhận và xử lý xong cho ${senderName} rồi nhé!`;
-    }
+    // Loại bỏ các mẫu câu sến sẩm, lúng túng hoặc giả đò
+    clean = clean.replace(/sếp thông cảm cho sự "hậu đậu" đáng yêu.*?\n*/gi, '');
+    clean = clean.replace(/chờ em một xíu nghen.*?\n*/gi, '');
+    clean = clean.replace(/tay chân thế nào lại gõ nhầm.*?\n*/gi, '');
 
-    return clean;
+    return clean.trim();
   }
 
   /**

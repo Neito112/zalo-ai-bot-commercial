@@ -40,23 +40,25 @@ export class BotServiceManager {
 
       try {
         const chatId = msg.chat?.id || msg.from?.id;
-        const text = msg.text || '';
+        const text = msg.text || msg.caption || '';
         const senderName = msg.from?.displayName || msg.from?.id || 'Người dùng';
+        const photoUrl = msg.photoUrl || msg.raw?.url || msg.raw?.photo || msg.raw?.attachments?.[0]?.url || msg.raw?.thumb || null;
 
-        console.log(`📩 [Zalo -> AI Agent] từ ${senderName} (${chatId}): "${text}"`);
+        console.log(`📩 [Zalo -> AI Agent] từ ${senderName} (${chatId}): "${text}" ${photoUrl ? `[KÈM ẢNH: ${photoUrl}]` : ''}`);
         if (!chatId) return;
 
         this.stats.messagesReceived++;
-        agentEvents.emit('zalo_message_received', { senderName, chatId, text });
+        agentEvents.emit('zalo_message_received', { senderName, chatId, text, photoUrl });
 
         // STEP 1: Quick typing / acknowledgment
         await this.bot.sendChatAction(chatId, 'typing').catch(() => {});
 
         // Enqueue message to shared inbox
-        const pendingMsg = enqueueZaloMessage(chatId, senderName, text);
+        const pendingMsg = enqueueZaloMessage(chatId, senderName, text || '[Hình ảnh]');
 
-        // STEP 2: Intelligent Multi-modal AI Processing
-        const result = await processUserRequest(text, senderName, String(chatId));
+        // STEP 2: Intelligent Multi-modal AI Processing (Text + Vision)
+        const promptToUse = text || (photoUrl ? 'Hãy quan sát, đọc chữ và phân tích chi tiết bức ảnh này giúp tôi.' : 'Xin chào!');
+        const result = await processUserRequest(promptToUse, senderName, String(chatId), photoUrl);
         const replyText = typeof result === 'object' ? result.text : result;
         const media = typeof result === 'object' ? result.media : null;
 

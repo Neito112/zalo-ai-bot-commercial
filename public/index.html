@@ -402,7 +402,30 @@
     }
   </style>
 </head>
-<body>
+  <!-- GitHub Auth Lock Modal Overlay -->
+  <div id="authLockOverlay" style="display: none; position: fixed; inset: 0; background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(20px); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: 20px; padding: 32px; max-width: 480px; width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.5); text-align: center; display: flex; flex-direction: column; gap: 18px;">
+      <div style="font-size: 42px;">🔒</div>
+      <div>
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px;">Bản Cá Nhân Riêng Tư - Xác Thực GitHub</h2>
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">Ứng dụng này yêu cầu đăng nhập tài khoản GitHub chính chủ (<strong>Neito112</strong>) để mở khóa quyền điều khiển Bot & Đám mây Não bộ trên thiết bị mới.</p>
+      </div>
+
+      <div class="form-group" style="text-align: left;">
+        <label>GitHub Personal Access Token</label>
+        <input type="password" id="authGithubToken" placeholder="Dán mã ghp_... vào đây" style="width: 100%;">
+        <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">
+          Tạo token với quyền repo tại: <a href="https://github.com/settings/tokens" target="_blank" style="color: #38bdf8; text-decoration: none;">GitHub Token Settings ↗</a>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="justify-content: center; padding: 12px; font-size: 14px;" onclick="verifyAndUnlockGithub()">
+        🔐 Xác Thực & Mở Khóa Thiết Bị
+      </button>
+
+      <div id="authErrorMsg" style="font-size: 12px; color: #ef4444; min-height: 18px;"></div>
+    </div>
+  </div>
 
   <!-- Header -->
   <header>
@@ -415,6 +438,9 @@
     </div>
 
     <div class="status-actions">
+      <div id="githubUserBadge" style="display: none; align-items: center; gap: 6px; font-size: 12px; padding: 5px 12px; border-radius: 20px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc;">
+        <span>👤</span> <strong id="githubUsername">Neito112</strong>
+      </div>
       <div id="statusPill" class="status-pill">
         <span class="status-dot"></span>
         <span id="statusText">ĐANG HOẠT ĐỘNG</span>
@@ -479,8 +505,8 @@
       </div>
 
       <div class="form-group">
-        <label>Zalo Bot Token (Lấy từ BotFather / bot.zalo.me)</label>
-        <input type="text" id="zaloToken" placeholder="Dán chuỗi Token Zalo Bot của bạn vào đây...">
+        <label>Zalo Bot Token</label>
+        <input type="password" id="zaloToken" placeholder="Token Zalo Bot..." readonly>
       </div>
 
       <div class="form-group">
@@ -540,8 +566,16 @@
         </div>
       </div>
 
+      <div id="imagePreviewContainer" style="display: none; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(99, 102, 241, 0.25);">
+        <img id="imagePreviewImg" style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px;" src="" alt="preview">
+        <span id="imagePreviewName" style="font-size: 11px; color: #a5b4fc; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+        <button style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 14px;" onclick="removeAttachedImage()">✕</button>
+      </div>
+
       <div class="chat-input-row">
-        <input type="text" id="chatInput" placeholder="Nhập câu hỏi hoặc yêu cầu (VD: Vẽ con rồng vũ trụ, tra cứu tin AI mới nhất...)" style="flex: 1;" onkeydown="if(event.key==='Enter') sendTestChat()">
+        <input type="file" id="chatImageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+        <button class="btn btn-restart" style="padding: 8px 12px;" onclick="document.getElementById('chatImageInput').click()" title="Đính kèm hình ảnh để AI đọc và phân tích">📷</button>
+        <input type="text" id="chatInput" placeholder="Nhập câu hỏi hoặc đính kèm ảnh (VD: Đọc hóa đơn này, giải bài toán, tìm lỗi code trong ảnh...)" style="flex: 1;" onkeydown="if(event.key==='Enter') sendTestChat()">
         <button id="btnSendChat" class="btn btn-primary" onclick="sendTestChat()">Gửi Lệnh 🚀</button>
       </div>
     </div>
@@ -691,9 +725,8 @@
     async function saveFullConfig() {
       const prompt = document.getElementById('customPrompt').value.trim();
       const model = document.getElementById('selectModel').value;
-      const zaloToken = document.getElementById('zaloToken').value.trim();
-      await saveConfigApi({ customSystemPrompt: prompt, activeModel: model, zaloToken: zaloToken });
-      alert('✅ Đã lưu cấu hình và kết nối Zalo Bot thành công!');
+      await saveConfigApi({ customSystemPrompt: prompt, activeModel: model });
+      alert('✅ Đã lưu cấu hình thành công!');
     }
 
     async function updateConfig() {
@@ -725,11 +758,43 @@
       await loadStatus();
     }
 
+    let attachedImageData = null;
+
+    function handleImageSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const fullBase64 = e.target.result;
+        const mimeType = file.type || 'image/jpeg';
+        const rawBase64 = fullBase64.split(',')[1];
+
+        attachedImageData = {
+          mimeType,
+          data: rawBase64,
+          dataUrl: fullBase64,
+          name: file.name
+        };
+
+        document.getElementById('imagePreviewImg').src = fullBase64;
+        document.getElementById('imagePreviewName').innerText = `📷 ${file.name} (${Math.round(file.size / 1024)} KB)`;
+        document.getElementById('imagePreviewContainer').style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeAttachedImage() {
+      attachedImageData = null;
+      document.getElementById('chatImageInput').value = '';
+      document.getElementById('imagePreviewContainer').style.display = 'none';
+    }
+
     // Chat Simulator
     async function sendTestChat() {
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
-      if (!text) return;
+      if (!text && !attachedImageData) return;
 
       input.value = '';
       const chatContainer = document.getElementById('chatMessages');
@@ -737,22 +802,45 @@
       // Add user message
       const userBubble = document.createElement('div');
       userBubble.className = 'message-bubble message-user';
-      userBubble.innerText = text;
+      if (text) {
+        userBubble.innerText = text;
+      }
+      if (attachedImageData) {
+        const userImg = document.createElement('img');
+        userImg.src = attachedImageData.dataUrl;
+        userImg.className = 'message-img';
+        userImg.style.maxWidth = '200px';
+        userImg.style.display = 'block';
+        userImg.style.marginTop = text ? '6px' : '0';
+        userBubble.appendChild(userImg);
+      }
       chatContainer.appendChild(userBubble);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
       // Loading bubble
       const loadingBubble = document.createElement('div');
       loadingBubble.className = 'message-bubble message-ai';
-      loadingBubble.innerText = '🤔 Đang suy nghĩ và thực thi các công cụ...';
+      loadingBubble.innerText = attachedImageData ? '🔍 Đang quan sát hình ảnh và phân tích chi tiết...' : '🤔 Đang suy nghĩ và thực thi các công cụ...';
       chatContainer.appendChild(loadingBubble);
       chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      const payload = {
+        prompt: text || 'Hãy quan sát thật tỉ mỉ bức ảnh này: đọc toàn bộ chữ (OCR), nhận diện sự vật, tình huống và phân tích chi tiết:'
+      };
+
+      if (attachedImageData) {
+        payload.image = {
+          mimeType: attachedImageData.mimeType,
+          data: attachedImageData.data
+        };
+        removeAttachedImage();
+      }
 
       try {
         const res = await fetch('/api/chat/test', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: text })
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
 
@@ -872,7 +960,65 @@
       }
     }
 
+    // GitHub Auth Guard Handlers
+    async function checkAuthStatus() {
+      try {
+        const res = await fetch('/api/auth/status');
+        const data = await res.json();
+        const overlay = document.getElementById('authLockOverlay');
+        const userBadge = document.getElementById('githubUserBadge');
+        const usernameEl = document.getElementById('githubUsername');
+
+        if (data.isLocked) {
+          overlay.style.display = 'flex';
+          userBadge.style.display = 'none';
+        } else {
+          overlay.style.display = 'none';
+          userBadge.style.display = 'inline-flex';
+          usernameEl.innerText = data.username || 'Neito112';
+        }
+      } catch (e) {}
+    }
+
+    async function verifyAndUnlockGithub() {
+      const tokenInput = document.getElementById('authGithubToken');
+      const errorEl = document.getElementById('authErrorMsg');
+      const token = tokenInput.value.trim();
+
+      if (!token) {
+        errorEl.innerText = 'Vui lòng nhập GitHub Token của bạn.';
+        return;
+      }
+
+      errorEl.style.color = '#38bdf8';
+      errorEl.innerText = '⏳ Đang xác thực với GitHub API...';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          errorEl.style.color = '#10b981';
+          errorEl.innerText = '✅ Xác thực thành công! Đang mở khóa...';
+          setTimeout(() => {
+            checkAuthStatus();
+          }, 800);
+        } else {
+          errorEl.style.color = '#ef4444';
+          errorEl.innerText = data.message || 'Xác thực thất bại.';
+        }
+      } catch (e) {
+        errorEl.style.color = '#ef4444';
+        errorEl.innerText = `Lỗi kết nối: ${e.message}`;
+      }
+    }
+
     // Init
+    checkAuthStatus();
     loadStatus();
     loadConfig();
     loadResearchStatus();

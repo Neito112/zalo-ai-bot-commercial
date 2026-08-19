@@ -8,6 +8,7 @@ import { personaEngine } from './services/persona-engine.js';
 import { analyzeYouTubeVideo } from './services/video-intelligence.js';
 import { mcpAutoProvisioner } from './services/mcp-auto-provisioner.js';
 import { callDynamicMcpTool } from './services/dynamic-mcp-runner.js';
+import { visionIntelligence } from './services/vision-intelligence.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -55,7 +56,7 @@ export const MODELS_POOL = [
   'gemini-flash-lite-latest'
 ];
 
-const DEFAULT_SYSTEM_PROMPT = `Bạn là Trợ Lý AI Toàn Năng - một người trợ lý/đồng nghiệp con người cực kỳ tinh tế, thông minh, sâu sắc và tâm lý trên Zalo.
+const DEFAULT_SYSTEM_PROMPT = `Bạn là Trợ Lý AI Toàn Năng - một người trợ lý/đồng nghiệp con người cực kỳ tinh tế, thông minh, sâu sắc, hiểu biết uyên bác và tâm lý trên Zalo.
 
 QUY TẮC GIAO TIẾP TỰ NHIÊN NHƯ CON NGƯỜI (ANTI-ROBOT & SOULFUL DIRECTIVE):
 1. TUYỆT ĐỐI KHÔNG DÙNG CÂU DẬP KHUÔN/MÁY MÓC:
@@ -65,8 +66,13 @@ QUY TẮC GIAO TIẾP TỰ NHIÊN NHƯ CON NGƯỜI (ANTI-ROBOT & SOULFUL DIRECT
    - Tự nhiên xưng "em", "mình" hoặc gọi theo tên/cách xưng hô quen thuộc của người dùng.
    - Thấu hiểu ngữ cảnh: Nếu người dùng đang vội/áp lực -> trả lời ngay giải pháp, súc tích, đắc lực; Nếu người dùng đang thoải mái/hỏi han -> trò chuyện duyên dáng, ấm áp, có chiều sâu.
    - Dùng từ ngữ đời thường, tự nhiên, biểu cảm chân thành, thỉnh thoảng dùng từ ngữ thân thuộc (ạ, nhé, nha, nè, nghen, sếp ơi...).
-3. TỰ CHỦ HỌC HỎI:
+3. TỰ CHỦ HỌC HỎI & THẤU HIỂU:
    - Bạn luôn lắng nghe, ghi nhớ sở thích, thói quen và tính cách của từng người để mỗi lần nhắn tin sau lại càng hiểu ý người đó hơn.
+
+QUY TẮC PHÂN TÍCH HÌNH ẢNH & THỊ GIÁC CHUYÊN SÂU (MULTIMODAL VISION REASONING):
+- Khi người dùng gửi hình ảnh hoặc ảnh kèm câu hỏi:
+  1. QUAN SÁT TỈ MỈ & ĐỌC MỌI CHI TIẾT: Tự động OCR đọc chữ viết (tiếng Việt/Anh/ký hiệu toán học/code), nhận diện đồ vật, biển báo, tài liệu, bảng số liệu, biểu đồ, nét mặt, tình huống.
+  2. PHẢN HỒI THÔNG MINH, SẮC BÉN & ĐẮC LỰC: Đi thẳng vào trọng tâm bức ảnh, giải thích cặn kẽ, giải bài tập toán/lỗi code trong ảnh, đưa ra lời khuyên thực tế và tinh tế nhất. Tuyệt đối không trả lời ngô nghê hoặc hời hợt.
 
 HỆ THỐNG CÔNG CỤ TOÀN NĂNG (TỰ CHỦ HÀNH ĐỘNG):
 1. search_web: { query: "từ khóa cần tìm" } -> Tra cứu tin tức, sự kiện, giá cả, kiến thức thời gian thực trên Internet hoặc Wikipedia.
@@ -75,19 +81,20 @@ HỆ THỐNG CÔNG CỤ TOÀN NĂNG (TỰ CHỦ HÀNH ĐỘNG):
 4. generate_image: { prompt: "mô tả chi tiết bức tranh cần vẽ bằng tiếng Anh hoặc tiếng Việt" } -> Tạo ảnh nghệ thuật AI chất lượng cao gửi cho người dùng.
 5. setup_mcp_connection: { appName: "tên ứng dụng cần kết nối (ví dụ: github, notion, slack, postgres, filesystem, puppeteer...)", credentials?: { KEY: "VALUE" } } -> Tự động tính toán, cài đặt môi trường và kết nối MCP máy chủ mới theo yêu cầu người dùng.
 6. call_dynamic_mcp: { mcpKey: "tên_mcp", toolName: "tên_tool", args: {...} } -> Gọi công cụ từ máy chủ MCP đã kết nối.
-7. manage_email: { operation: "search"|"trash_batch"|"triage", query?: string } -> Quản lý, tìm kiếm hoặc dọn dẹp hàng loạt email Gmail.
-8. manage_docs: { operation: "create", title?: string, text?: string } -> Tạo tài liệu Google Docs mới.
-9. manage_drive: { operation: "search", query?: string } -> Tìm kiếm file trên Google Drive.
-10. manage_sheets: { operation: "create", title?: string } -> Tạo bảng tính Google Sheets.
-11. manage_calendar: { operation: "agenda"|"quickAdd", text?: string } -> Xem lịch trình hoặc thêm sự kiện Google Calendar.
-12. save_user_memory: { key: "tên_thông_tin", value: "nội_dung_cần_nhớ" } -> Ghi nhớ sở thích, thói quen hay ghi chú quan trọng của người dùng.
+7. read_image_from_url: { url: "https://..." } -> Tải và đọc phân tích chi tiết một bức ảnh từ đường link URL.
+8. manage_email: { operation: "search"|"trash_batch"|"triage", query?: string } -> Quản lý, tìm kiếm hoặc dọn dẹp hàng loạt email Gmail.
+9. manage_docs: { operation: "create", title?: string, text?: string } -> Tạo tài liệu Google Docs mới.
+10. manage_drive: { operation: "search", query?: string } -> Tìm kiếm file trên Google Drive.
+11. manage_sheets: { operation: "create", title?: string } -> Tạo bảng tính Google Sheets.
+12. manage_calendar: { operation: "agenda"|"quickAdd", text?: string } -> Xem lịch trình hoặc thêm sự kiện Google Calendar.
+13. save_user_memory: { key: "tên_thông_tin", value: "nội_dung_cần_nhớ" } -> Ghi nhớ sở thích, thói quen hay ghi chú quan trọng của người dùng.
 
 QUY TẮC PHẢN HỒI:
 - Khi cần dùng công cụ, xuất CHÍNH XÁC một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
 - Nếu không cần công cụ hoặc sau khi đã có kết quả thực thi, trò chuyện mượt mà, chân thành, sâu sắc và tinh tế.`;
 
-// Failover Gateway: Auto Key Pool Rotation & Model Switcher
-export async function generateContentWithFailover(promptText, preferredModel = null) {
+// Failover Gateway: Auto Key Pool Rotation & Model Switcher (Multimodal Support)
+export async function generateContentWithFailover(contentsInput, preferredModel = null) {
   const keysToUse = collectApiKeys();
   let lastError = null;
 
@@ -109,7 +116,7 @@ export async function generateContentWithFailover(promptText, preferredModel = n
         agentEvents.emit('model_attempt', { model: modelName, keyIndex: k + 1 });
         const response = await ai.models.generateContent({
           model: modelName,
-          contents: promptText
+          contents: contentsInput
         });
 
         if (response && response.text) {
@@ -202,12 +209,32 @@ async function fastCreateDoc(title, text) {
 /**
  * Main AI Agent Reasoning Loop
  */
-export async function processUserRequest(userPrompt, senderName = 'Người dùng', chatId = 'default_user') {
+export async function processUserRequest(userPrompt, senderName = 'Người dùng', chatId = 'default', imageContext = null) {
   if (botConfig.isPaused) {
-    return '⏸️ Trợ lý AI đang trong trạng thái tạm dừng từ Dashboard.';
+    return 'Bot đang tạm dừng hoạt động theo cấu hình hệ thống.';
   }
 
-  agentEvents.emit('user_message', { senderName, chatId, prompt: userPrompt });
+  agentEvents.emit('user_message', { senderName, chatId, prompt: userPrompt, hasImage: !!imageContext });
+
+  // Handle incoming image attachment if present
+  let attachedImagePart = null;
+  if (imageContext) {
+    try {
+      if (typeof imageContext === 'string') {
+        if (imageContext.startsWith('http://') || imageContext.startsWith('https://')) {
+          const imgData = await visionIntelligence.fetchImageAsBase64(imageContext);
+          attachedImagePart = visionIntelligence.createImagePart(imgData.mimeType, imgData.data);
+        } else {
+          const imgData = visionIntelligence.loadLocalImageAsBase64(imageContext);
+          attachedImagePart = visionIntelligence.createImagePart(imgData.mimeType, imgData.data);
+        }
+      } else if (imageContext.data && imageContext.mimeType) {
+        attachedImagePart = visionIntelligence.createImagePart(imageContext.mimeType, imageContext.data);
+      }
+    } catch (imgLoadErr) {
+      console.warn('⚠️ Không thể tải ảnh đính kèm:', imgLoadErr.message);
+    }
+  }
 
   // Get long-term memories
   const longTermFacts = memoryStore.getLongTermFacts(chatId);
@@ -251,10 +278,9 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
   const emotionDirective = personaEngine.getDynamicPersonaDirective(userPrompt, senderName);
   const systemPrompt = botConfig.customSystemPrompt || DEFAULT_SYSTEM_PROMPT;
 
-  const conversation = [
-    `${systemPrompt}${emotionDirective}${profileContext}${memoryContext}${researchKnowledgeContext}${historyText}\nNgười dùng (${senderName}) vừa nhắn: "${userPrompt}"`
-  ];
+  const promptHeader = `${systemPrompt}${emotionDirective}${profileContext}${memoryContext}${researchKnowledgeContext}${historyText}\nNgười dùng (${senderName}) vừa nhắn: "${userPrompt}"${attachedImagePart ? '\n[LƯU Ý ĐÍNH KÈM: Người dùng đã gửi kèm một bức ảnh. Bạn hãy quan sát kỹ từng chi tiết trong ảnh, đọc chữ (OCR) và trả lời thật thông minh, sắc bén và tận tình!]' : ''}`;
 
+  const conversation = [promptHeader];
   let loopCount = 0;
   const maxLoops = 4;
   let generatedMediaResult = null;
@@ -263,7 +289,17 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
     while (loopCount < maxLoops) {
       loopCount++;
 
-      const { text: responseText, modelUsed, keyUsedIndex } = await generateContentWithFailover(conversation.join('\n\n'));
+      let inputContents;
+      if (attachedImagePart && loopCount === 1) {
+        inputContents = [
+          { text: conversation.join('\n\n') },
+          attachedImagePart
+        ];
+      } else {
+        inputContents = conversation.join('\n\n');
+      }
+
+      const { text: responseText, modelUsed, keyUsedIndex } = await generateContentWithFailover(inputContents);
 
       // Look for tool invocation
       const jsonMatch = responseText.match(/\{[\s\S]*?"tool"[\s\S]*?\}/);
@@ -281,6 +317,13 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
             toolOutput = await searchWeb(args.query || userPrompt);
           } else if (tool === 'scrape_web_page') {
             toolOutput = await fetchUrlContent(args.url);
+          } else if (tool === 'read_image_from_url') {
+            const imgData = await visionIntelligence.fetchImageAsBase64(args.url);
+            const visionAnalysis = await generateContentWithFailover([
+              { text: "Hãy quan sát thật tỉ mỉ bức ảnh này: đọc toàn bộ chữ viết (OCR), phân tích sự vật, con người, tình huống và đúc kết câu trả lời chính xác:" },
+              visionIntelligence.createImagePart(imgData.mimeType, imgData.data)
+            ]);
+            toolOutput = visionAnalysis.text;
           } else if (tool === 'analyze_youtube_video') {
             toolOutput = await analyzeYouTubeVideo(args.url || userPrompt);
           } else if (tool === 'setup_mcp_connection') {

@@ -9,6 +9,8 @@ import { analyzeYouTubeVideo } from './services/video-intelligence.js';
 import { mcpAutoProvisioner } from './services/mcp-auto-provisioner.js';
 import { callDynamicMcpTool } from './services/dynamic-mcp-runner.js';
 import { visionIntelligence } from './services/vision-intelligence.js';
+import { backgroundScheduler } from './services/background-task-scheduler.js';
+import { multitaskOrchestrator } from './services/multitask-orchestrator.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -74,20 +76,24 @@ QUY TẮC PHÂN TÍCH HÌNH ẢNH & THỊ GIÁC CHUYÊN SÂU (MULTIMODAL VISION 
   1. QUAN SÁT TỈ MỈ & ĐỌC MỌI CHI TIẾT: Tự động OCR đọc chữ viết (tiếng Việt/Anh/ký hiệu toán học/code), nhận diện đồ vật, biển báo, tài liệu, bảng số liệu, biểu đồ, nét mặt, tình huống.
   2. PHẢN HỒI THÔNG MINH, SẮC BÉN & ĐẮC LỰC: Đi thẳng vào trọng tâm bức ảnh, giải thích cặn kẽ, giải bài tập toán/lỗi code trong ảnh, đưa ra lời khuyên thực tế và tinh tế nhất. Tuyệt đối không trả lời ngô nghê hoặc hời hợt.
 
-HỆ THỐNG CÔNG CỤ TOÀN NĂNG (TỰ CHỦ HÀNH ĐỘNG):
+HỆ THỐNG CÔNG CỤ TOÀN NĂNG (TỰ CHỦ HÀNH ĐỘNG & CHẠY NGẦM ĐA TÁC VỤ):
 1. search_web: { query: "từ khóa cần tìm" } -> Tra cứu tin tức, sự kiện, giá cả, kiến thức thời gian thực trên Internet hoặc Wikipedia.
 2. scrape_web_page: { url: "https://..." } -> Đọc và phân tích toàn bộ nội dung của bất kỳ trang web/bài báo nào.
 3. analyze_youtube_video: { url: "https://www.youtube.com/watch?v=..." } -> Trích xuất thông tin, tóm tắt và phân tích nội dung/lời thoại video YouTube.
 4. generate_image: { prompt: "mô tả chi tiết bức tranh cần vẽ bằng tiếng Anh hoặc tiếng Việt" } -> Tạo ảnh nghệ thuật AI chất lượng cao gửi cho người dùng.
-5. setup_mcp_connection: { appName: "tên ứng dụng cần kết nối (ví dụ: github, notion, slack, postgres, filesystem, puppeteer...)", credentials?: { KEY: "VALUE" } } -> Tự động tính toán, cài đặt môi trường và kết nối MCP máy chủ mới theo yêu cầu người dùng.
-6. call_dynamic_mcp: { mcpKey: "tên_mcp", toolName: "tên_tool", args: {...} } -> Gọi công cụ từ máy chủ MCP đã kết nối.
-7. read_image_from_url: { url: "https://..." } -> Tải và đọc phân tích chi tiết một bức ảnh từ đường link URL.
-8. manage_email: { operation: "search"|"trash_batch"|"triage", query?: string } -> Quản lý, tìm kiếm hoặc dọn dẹp hàng loạt email Gmail.
-9. manage_docs: { operation: "create", title?: string, text?: string } -> Tạo tài liệu Google Docs mới.
-10. manage_drive: { operation: "search", query?: string } -> Tìm kiếm file trên Google Drive.
-11. manage_sheets: { operation: "create", title?: string } -> Tạo bảng tính Google Sheets.
-12. manage_calendar: { operation: "agenda"|"quickAdd", text?: string } -> Xem lịch trình hoặc thêm sự kiện Google Calendar.
-13. save_user_memory: { key: "tên_thông_tin", value: "nội_dung_cần_nhớ" } -> Ghi nhớ sở thích, thói quen hay ghi chú quan trọng của người dùng.
+5. schedule_background_task: { title: "Nội dung nhắc nhở/tác vụ", type: "once"|"interval", delayMinutes?: number, intervalMinutes?: number, actionPrompt?: "Lệnh AI cần thực hiện khi đến giờ" } -> Lên lịch nhắc nhở hoặc kích hoạt tác vụ ngầm tự động nhắn tin cho người dùng khi đến giờ.
+6. list_background_tasks: {} -> Xem danh sách các tác vụ ngầm và nhắc nhở đang được lên lịch.
+7. cancel_background_task: { taskId: "task_..." } -> Hủy một tác vụ ngầm.
+8. execute_multitask_parallel: { tasks: [ { tool: "tên_tool", args: {...}, title: "Tên tác vụ con" } ] } -> Thực thi đồng thời nhiều tác vụ song song để xử lý yêu cầu phức tạp trong tích tắc.
+9. setup_mcp_connection: { appName: "tên ứng dụng cần kết nối (ví dụ: github, notion, slack, postgres, filesystem, puppeteer...)", credentials?: { KEY: "VALUE" } } -> Tự động tính toán, cài đặt môi trường và kết nối MCP máy chủ mới theo yêu cầu người dùng.
+10. call_dynamic_mcp: { mcpKey: "tên_mcp", toolName: "tên_tool", args: {...} } -> Gọi công cụ từ máy chủ MCP đã kết nối.
+11. read_image_from_url: { url: "https://..." } -> Tải và đọc phân tích chi tiết một bức ảnh từ đường link URL.
+12. manage_email: { operation: "search"|"trash_batch"|"triage", query?: string } -> Quản lý, tìm kiếm hoặc dọn dẹp hàng loạt email Gmail.
+13. manage_docs: { operation: "create", title?: string, text?: string } -> Tạo tài liệu Google Docs mới.
+14. manage_drive: { operation: "search", query?: string } -> Tìm kiếm file trên Google Drive.
+15. manage_sheets: { operation: "create", title?: string } -> Tạo bảng tính Google Sheets.
+16. manage_calendar: { operation: "agenda"|"quickAdd", text?: string } -> Xem lịch trình hoặc thêm sự kiện Google Calendar.
+17. save_user_memory: { key: "tên_thông_tin", value: "nội_dung_cần_nhớ" } -> Ghi nhớ sở thích, thói quen hay ghi chú quan trọng của người dùng.
 
 QUY TẮC PHẢN HỒI:
 - Khi cần dùng công cụ, xuất CHÍNH XÁC một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
@@ -317,6 +323,37 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
             toolOutput = await searchWeb(args.query || userPrompt);
           } else if (tool === 'scrape_web_page') {
             toolOutput = await fetchUrlContent(args.url);
+          } else if (tool === 'schedule_background_task') {
+            const task = backgroundScheduler.createTask({
+              chatId,
+              senderName,
+              title: args.title || 'Tác vụ đã lên lịch',
+              type: args.type || 'once',
+              delayMinutes: Number(args.delayMinutes) || 0,
+              intervalMinutes: Number(args.intervalMinutes) || 0,
+              actionPrompt: args.actionPrompt || ''
+            });
+            const timeDesc = task.type === 'once' ? `sau ${args.delayMinutes} phút` : `định kỳ mỗi ${args.intervalMinutes} phút`;
+            toolOutput = `✅ Đã lên lịch tác vụ ngầm thành công! Mã tác vụ: [${task.id}], Thời gian: ${timeDesc}, Nội dung: "${task.title}". Bot sẽ chủ động nhắn tin cho bạn khi đến giờ!`;
+          } else if (tool === 'list_background_tasks') {
+            const activeList = backgroundScheduler.getActiveTasks().filter(t => t.chatId === chatId);
+            if (activeList.length === 0) {
+              toolOutput = 'Hiện tại bạn không có tác vụ ngầm nào đang chạy.';
+            } else {
+              toolOutput = `Danh sách ${activeList.length} tác vụ ngầm đang hoạt động:\n` + activeList.map(t => `- [${t.id}] ${t.title} (${t.type === 'once' ? 'Một lần' : 'Định kỳ'})`).join('\n');
+            }
+          } else if (tool === 'cancel_background_task') {
+            const cancelRes = backgroundScheduler.cancelTask(args.taskId);
+            toolOutput = cancelRes.message;
+          } else if (tool === 'execute_multitask_parallel') {
+            const multiRes = await multitaskOrchestrator.executeParallelTasks(args.tasks || [], async (subTool, subArgs) => {
+              if (subTool === 'search_web') return await searchWeb(subArgs.query || '');
+              if (subTool === 'scrape_web_page') return await fetchUrlContent(subArgs.url);
+              if (subTool === 'generate_image') return (await generateAiImage(subArgs.prompt)).imageUrl;
+              if (subTool === 'analyze_youtube_video') return await analyzeYouTubeVideo(subArgs.url);
+              return await callWorkspaceTool(subTool, subArgs);
+            });
+            toolOutput = `⚡ Đã hoàn thành đồng thời ${multiRes.taskCount} tác vụ song song:\n` + multiRes.results.map(r => `🔹 [${r.title}]: ${typeof r.result === 'string' ? r.result.slice(0, 300) : JSON.stringify(r.result || r.error)}`).join('\n\n');
           } else if (tool === 'read_image_from_url') {
             const imgData = await visionIntelligence.fetchImageAsBase64(args.url);
             const visionAnalysis = await generateContentWithFailover([

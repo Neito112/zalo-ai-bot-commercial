@@ -9,6 +9,9 @@ import { memoryStore } from './services/memory-store.js';
 import { researchEngine } from './services/auto-research-loop.js';
 import { cloudBrainSync } from './services/cloud-brain-sync.js';
 import { KNOWN_MCP_REGISTRY, mcpAutoProvisioner } from './services/mcp-auto-provisioner.js';
+import { githubAuthGuard } from './services/github-auth-guard.js';
+import { backgroundScheduler } from './services/background-task-scheduler.js';
+import { proactiveScout } from './services/autonomous-proactive-scout.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -61,28 +64,20 @@ app.get('/api/config', (req, res) => {
 });
 
 // POST Config Update
-app.post('/api/config', async (req, res) => {
-  const { apiKeys, activeModel, customSystemPrompt, temperature, zaloToken } = req.body;
+app.post('/api/config', (req, res) => {
+  const { apiKeys, activeModel, customSystemPrompt, temperature } = req.body;
 
   if (activeModel) botConfig.activeModel = activeModel;
   if (customSystemPrompt !== undefined) botConfig.customSystemPrompt = customSystemPrompt;
   if (temperature !== undefined) botConfig.temperature = temperature;
 
-  const envPath = path.resolve('.env');
-  let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
-  let lines = envContent.split('\n');
-
-  if (zaloToken && !zaloToken.includes('...')) {
-    process.env.ZALO_BOT_TOKEN = zaloToken.trim();
-    lines = lines.filter(line => !line.trim().startsWith('ZALO_BOT_TOKEN'));
-    lines.unshift(`ZALO_BOT_TOKEN=${zaloToken.trim()}`);
-    // Restart bot with new token
-    await botServiceManager.restart();
-  }
-
   if (Array.isArray(apiKeys)) {
+    // Read current .env
+    const envPath = path.resolve('.env');
+    let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
+
     // Remove existing GEMINI_API_KEY lines
-    lines = lines.filter(line => !line.trim().startsWith('GEMINI_API_KEY'));
+    const lines = envContent.split('\n').filter(line => !line.trim().startsWith('GEMINI_API_KEY'));
 
     // Append new keys
     apiKeys.forEach((key, index) => {
@@ -90,10 +85,9 @@ app.post('/api/config', async (req, res) => {
       process.env[`GEMINI_API_KEY_${index + 1}`] = key.trim();
     });
 
+    fs.writeFileSync(envPath, lines.join('\n'), 'utf-8');
     agentEvents.emit('config_updated', { message: 'Đã cập nhật danh sách API Keys mới' });
   }
-
-  fs.writeFileSync(envPath, lines.join('\n'), 'utf-8');
 
   res.json({ success: true, message: 'Cấu hình đã được cập nhật thành công!' });
 });
@@ -114,13 +108,14 @@ app.post('/api/bot/restart', async (req, res) => {
   res.json({ success: restarted, message: restarted ? 'Bot đã khởi động lại' : 'Lỗi khi khởi động lại' });
 });
 
-// Chat Test Simulator
+// Chat Test Simulator (Supports Image & Text)
 app.post('/api/chat/test', async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'Missing prompt' });
+  const { prompt, image } = req.body;
+  if (!prompt && !image) return res.status(400).json({ error: 'Missing prompt or image' });
 
   try {
-    const result = await processUserRequest(prompt, 'Admin Dashboard', 'dashboard_test_session');
+    const promptText = prompt || 'Hãy quan sát thật tỉ mỉ bức ảnh này: đọc toàn bộ chữ (OCR), nhận diện sự vật, tình huống và phân tích chi tiết:';
+    const result = await processUserRequest(promptText, 'Admin Dashboard', 'dashboard_test_session', image || null);
     res.json(typeof result === 'object' ? result : { text: result, media: null });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -171,6 +166,31 @@ app.post('/api/cloud/sync', async (req, res) => {
   res.json(result);
 });
 
+// Background Tasks & Scheduler Endpoints
+app.get('/api/tasks/list', (req, res) => {
+  res.json({
+    active: backgroundScheduler.getActiveTasks(),
+    all: backgroundScheduler.getAllTasks()
+  });
+});
+
+app.post('/api/tasks/cancel', (req, res) => {
+  const { taskId } = req.body;
+  if (!taskId) return res.status(400).json({ error: 'Missing taskId' });
+  const result = backgroundScheduler.cancelTask(taskId);
+  res.json(result);
+});
+
+// Autonomous Scout Endpoints
+app.get('/api/scout/status', (req, res) => {
+  res.json(proactiveScout.getStatus());
+});
+
+app.post('/api/scout/trigger', async (req, res) => {
+  await proactiveScout.runSingleRoamCycle();
+  res.json({ success: true, message: 'Đã hoàn thành 1 chu kỳ thám hiểm mạng tự chủ!' });
+});
+
 // MCP Hub Endpoints
 app.get('/api/mcp/registry', (req, res) => {
   res.json({
@@ -184,6 +204,23 @@ app.post('/api/mcp/setup', async (req, res) => {
   if (!appName) return res.status(400).json({ error: 'Missing appName' });
   const result = await mcpAutoProvisioner.provisionMcp(appName, credentials || {});
   res.json(result);
+});
+
+// GitHub Authentication & Lock Guard
+app.get('/api/auth/status', (req, res) => {
+  res.json(githubAuthGuard.getStatus());
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Missing GitHub token' });
+  const result = await githubAuthGuard.verifyGitHubToken(token);
+  res.json(result);
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  githubAuthGuard.clearAuth();
+  res.json({ success: true, message: 'Đã đăng xuất GitHub' });
 });
 
 // SSE Log Stream

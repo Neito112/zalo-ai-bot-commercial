@@ -2,6 +2,8 @@ import { createRequire } from 'module';
 import 'dotenv/config';
 import { enqueueZaloMessage, updateZaloMessageResponse } from './agent-bridge.js';
 import { processUserRequest, agentEvents, botConfig } from './ai-agent.js';
+import { backgroundScheduler } from './services/background-task-scheduler.js';
+import { proactiveScout } from './services/autonomous-proactive-scout.js';
 
 const require = createRequire(import.meta.url);
 const { Bot } = require('zalo-bot-js');
@@ -14,9 +16,15 @@ export class BotServiceManager {
     this.stats = {
       messagesReceived: 0,
       messagesSent: 0,
+      proactiveMessagesSent: 0,
       toolsUsed: 0,
       startTime: Date.now()
     };
+
+    // Link Proactive Senders to Bot instance
+    backgroundScheduler.setSender((chatId, msg) => this.sendProactiveMessage(chatId, msg));
+    backgroundScheduler.setExecutor((prompt, senderName, chatId) => processUserRequest(prompt, senderName, chatId));
+    proactiveScout.setSender((chatId, msg) => this.sendProactiveMessage(chatId, msg));
   }
 
   initBot() {
@@ -90,6 +98,28 @@ export class BotServiceManager {
     });
   }
 
+  /**
+   * Chủ động gửi tin nhắn đến người dùng Zalo không cần chờ người dùng hỏi trước
+   */
+  async sendProactiveMessage(chatId, text, media = null) {
+    if (!this.bot || !chatId) return false;
+    try {
+      if (media && media.filePath) {
+        await this.bot.sendPhoto(chatId, media.filePath, { caption: text ? text.slice(0, 500) : '' }).catch(() => {});
+      }
+      if (text) {
+        await this.bot.sendMessage(chatId, text);
+      }
+      this.stats.proactiveMessagesSent++;
+      this.stats.messagesSent++;
+      agentEvents.emit('proactive_message_sent', { chatId, textPreview: text.slice(0, 100) });
+      return true;
+    } catch (e) {
+      console.error(`❌ Lỗi gửi tin nhắn chủ động tới ${chatId}:`, e.message);
+      return false;
+    }
+  }
+
   async start() {
     if (this.isPolling) return true;
     if (!this.bot) this.initBot();
@@ -101,6 +131,11 @@ export class BotServiceManager {
       botConfig.isPaused = false;
       agentEvents.emit('bot_status_change', { isPolling: true });
       console.log('✅ Zalo AI Bot Polling Service STARTED!');
+
+      // Tự động kích hoạt Background Task Scheduler & Proactive Scout
+      backgroundScheduler.startScheduler();
+      proactiveScout.startRoaming(15);
+
       return true;
     } catch (err) {
       console.error('❌ Failed to start polling:', err.message);
@@ -118,6 +153,7 @@ export class BotServiceManager {
       this.isPolling = false;
       botConfig.isPaused = true;
       agentEvents.emit('bot_status_change', { isPolling: false });
+      proactiveScout.stopRoaming();
       console.log('🛑 Zalo AI Bot Polling Service STOPPED!');
       return true;
     } catch (err) {

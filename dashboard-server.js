@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import 'dotenv/config';
 import { botServiceManager } from './bot-service.js';
 import { processUserRequest, agentEvents, botConfig, collectApiKeys, MODELS_POOL } from './ai-agent.js';
@@ -14,15 +15,24 @@ import { backgroundScheduler } from './services/background-task-scheduler.js';
 import { proactiveScout } from './services/autonomous-proactive-scout.js';
 import { localModelClient } from './services/local-model-client.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicPath = path.join(__dirname, 'public');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
-app.use('/audio', express.static('generated_audio'));
-app.use('/media', express.static('generated_media'));
+app.use(express.static(publicPath));
+app.use('/audio', express.static(path.join(__dirname, 'generated_audio')));
+app.use('/media', express.static(path.join(__dirname, 'generated_media')));
+
+// Root Route fallback
+app.get('/', (req, res) => {
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
 
 // SSE Clients List
 const sseClients = new Set();

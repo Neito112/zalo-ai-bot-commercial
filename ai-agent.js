@@ -39,6 +39,7 @@ import { hybridRetriever } from './services/hybrid-retrieval-engine.js';
 import { toolSelfHealing } from './services/tool-self-healing-engine.js';
 import { googleWorkspace } from './services/google-workspace-native.js';
 import { excelGenerator } from './services/excel-document-generator.js';
+import { getFinancialMarketData } from './services/financial-intelligence.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -123,7 +124,8 @@ HỆ THỐNG CÔNG CỤ THỰC THI (FUNCTION CALLING):
 16. manage_calendar: { operation: "agenda"|"quickAdd", text?: string } -> Quản lý lịch Calendar.
 17. synthesize_speech: { text: "nội dung tiếng Việt" } -> Tạo giọng nói AI tiếng Việt MP3.
 18. generate_excel_file: { fileName: "Ten_File", sheetName?: "Trang1", dataRows: [ { "Cot1": "GiaTri1", "Cot2": "GiaTri2" } ] } -> Tạo tệp Excel .xlsx chứa dữ liệu bảng biểu, tài chính, báo cáo, danh sách thật gửi cho người dùng.
-19. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
+19. get_financial_market_data: { symbol: "BTC|ETH|USD|EUR|..." } -> Tra cứu tỷ giá ngoại tệ USD/EUR/VND và giá tiền điện tử thời gian thực.
+20. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
 
 CÁCH THỨC XUẤT LỆNH:
 - Khi cần dùng công cụ: Xuất DUY NHẤT một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
@@ -494,6 +496,8 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
             } else {
               toolOutput = excelRes.message;
             }
+          } else if (tool === 'get_financial_market_data') {
+            toolOutput = await getFinancialMarketData(args.symbol || 'BTC');
           } else if (tool === 'call_dynamic_mcp') {
             const { serverName, toolName, mcpArgs } = args;
             toolOutput = await callDynamicMcpTool(serverName, toolName, mcpArgs);

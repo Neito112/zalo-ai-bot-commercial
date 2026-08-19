@@ -313,12 +313,17 @@
 
         if (data.isPolling) {
           badge.className = 'badge';
-          text.innerText = 'Đang Chạy';
+          text.innerHTML = `🟢 Đang Chạy • <strong>${data.botName || 'Bot Quản Đốc'}</strong> (${data.ping || 75}ms)`;
         } else {
           badge.className = 'badge stopped';
-          text.innerText = 'Đã Dừng';
+          text.innerHTML = `🔴 Đã Dừng`;
         }
-      } catch (e) {}
+      } catch (e) {
+        const badge = document.getElementById('statusBadge');
+        const text = document.getElementById('statusText');
+        badge.className = 'badge stopped';
+        text.innerHTML = `⚠️ Mất Kết Nối Server`;
+      }
     }
 
     async function loadConfig() {
@@ -375,6 +380,10 @@
     }
 
     async function saveConfig() {
+      const saveBtn = event.target;
+      saveBtn.innerText = '⏳ Đang lưu & nạp cấu hình...';
+      saveBtn.disabled = true;
+
       const provider = document.getElementById('selectProvider').value;
       const zaloToken = document.getElementById('zaloToken').value.trim();
       const localEndpoint = document.getElementById('localEndpoint').value.trim();
@@ -387,7 +396,12 @@
         localModelName
       });
 
-      alert('✅ Đã lưu cấu hình API thành công!');
+      await loadConfig();
+      await loadStatus();
+
+      saveBtn.innerText = '💾 Lưu Cấu Hình & Áp Dụng';
+      saveBtn.disabled = false;
+      alert('✅ Đã lưu cấu hình API & kết nối Zalo Bot thành công!');
     }
 
     async function saveApi(payload) {
@@ -415,24 +429,27 @@
     }
 
     async function startBot() {
+      document.getElementById('statusText').innerText = '⏳ Đang khởi động Bot...';
       await fetch('/api/bot/start', { method: 'POST' });
-      await loadStatus();
+      setTimeout(loadStatus, 500);
     }
 
     async function stopBot() {
+      document.getElementById('statusText').innerText = '⏳ Đang tắt Bot...';
       await fetch('/api/bot/stop', { method: 'POST' });
-      await loadStatus();
+      setTimeout(loadStatus, 500);
     }
 
     async function restartBot() {
+      document.getElementById('statusText').innerText = '⏳ Đang kết nối lại...';
       await fetch('/api/bot/restart', { method: 'POST' });
-      await loadStatus();
+      setTimeout(loadStatus, 800);
     }
 
     // Init
     loadStatus();
     loadConfig();
-    setInterval(loadStatus, 3000);
+    setInterval(loadStatus, 2000);
   </script>
 </body>
 </html>

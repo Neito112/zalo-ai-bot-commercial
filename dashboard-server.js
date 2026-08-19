@@ -65,13 +65,13 @@ app.get('/api/config', (req, res) => {
     temperature: botConfig.temperature,
     customSystemPrompt: botConfig.customSystemPrompt,
     apiKeys: keys,
-    zaloToken: process.env.ZALO_BOT_TOKEN ? `${process.env.ZALO_BOT_TOKEN.slice(0, 10)}...` : '',
+    zaloToken: process.env.ZALO_BOT_TOKEN || '',
     modelsPool: MODELS_POOL
   });
 });
 
 // POST Config Update
-app.post('/api/config', (req, res) => {
+app.post('/api/config', async (req, res) => {
   const { provider, activeModel, localEndpoint, localModelName, customSystemPrompt, temperature, apiKeys, zaloToken } = req.body;
 
   if (provider) botConfig.provider = provider;
@@ -84,15 +84,20 @@ app.post('/api/config', (req, res) => {
   const envPath = path.resolve('.env');
   let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
   let envModified = false;
+  let tokenChanged = false;
 
-  if (zaloToken && zaloToken.trim()) {
-    process.env.ZALO_BOT_TOKEN = zaloToken.trim();
-    if (envContent.includes('ZALO_BOT_TOKEN=')) {
-      envContent = envContent.replace(/ZALO_BOT_TOKEN=.*/, `ZALO_BOT_TOKEN=${zaloToken.trim()}`);
-    } else {
-      envContent += `\nZALO_BOT_TOKEN=${zaloToken.trim()}`;
+  if (zaloToken !== undefined && zaloToken !== null) {
+    const cleanToken = zaloToken.trim();
+    if (cleanToken && cleanToken !== process.env.ZALO_BOT_TOKEN) {
+      process.env.ZALO_BOT_TOKEN = cleanToken;
+      tokenChanged = true;
+      if (envContent.includes('ZALO_BOT_TOKEN=')) {
+        envContent = envContent.replace(/ZALO_BOT_TOKEN=.*/, `ZALO_BOT_TOKEN=${cleanToken}`);
+      } else {
+        envContent += `\nZALO_BOT_TOKEN=${cleanToken}`;
+      }
+      envModified = true;
     }
-    envModified = true;
   }
 
   if (Array.isArray(apiKeys)) {
@@ -112,6 +117,11 @@ app.post('/api/config', (req, res) => {
 
   if (envModified) {
     fs.writeFileSync(envPath, envContent, 'utf-8');
+  }
+
+  if (tokenChanged) {
+    console.log('🔄 Zalo Bot Token đã thay đổi, đang khởi động lại kết nối bot...');
+    await botServiceManager.restart();
   }
 
   res.json({ success: true, message: 'Cấu hình API & Máy chủ đã được cập nhật thành công!' });

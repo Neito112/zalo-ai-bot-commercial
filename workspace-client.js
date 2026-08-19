@@ -9,7 +9,16 @@ const env = {
 };
 
 export async function callWorkspaceTool(toolName, args) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
+    let isResolved = false;
+    const safeResolve = (val) => {
+      if (!isResolved) {
+        isResolved = true;
+        try { mcpProcess.kill(); } catch (e) {}
+        resolve(val);
+      }
+    };
+
     const mcpProcess = spawn('npx', ['-y', '@aaronsb/google-workspace-mcp'], {
       env,
       stdio: ['pipe', 'pipe', 'inherit'],
@@ -27,17 +36,21 @@ export async function callWorkspaceTool(toolName, args) {
           if (!line.trim()) continue;
           try {
             const json = JSON.parse(line);
-            if (json.id === 2 && json.result) {
-              const textContent = json.result.content?.map(c => c.text).join('\n') || JSON.stringify(json.result);
-              mcpProcess.kill();
-              return resolve(textContent);
+            if (json.id === 2) {
+              if (json.result) {
+                const textContent = json.result.content?.map(c => c.text).join('\n') || JSON.stringify(json.result);
+                return safeResolve(textContent);
+              } else if (json.error) {
+                const errorMsg = json.error.message || JSON.stringify(json.error);
+                return safeResolve(`Lỗi Google Workspace: ${errorMsg}`);
+              }
             }
           } catch (e) {}
         }
       } catch (e) {}
     });
 
-    mcpProcess.on('error', (err) => reject(err));
+    mcpProcess.on('error', (err) => safeResolve(`Lỗi khởi chạy Google Workspace MCP: ${err.message}`));
 
     // Send JSON-RPC initialize
     const initReq = JSON.stringify({
@@ -50,29 +63,35 @@ export async function callWorkspaceTool(toolName, args) {
     mcpProcess.stdin.write(initReq);
 
     setTimeout(() => {
-      mcpProcess.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
+      try {
+        mcpProcess.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
 
-      const callReq = JSON.stringify({
-        jsonrpc: '2.0',
-        id: 2,
-        method: 'tools/call',
-        params: {
-          name: toolName,
-          arguments: {
-            email: USER_EMAIL,
-            ...args
+        const callReq = JSON.stringify({
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tools/call',
+          params: {
+            name: toolName,
+            arguments: {
+              email: USER_EMAIL,
+              ...args
+            }
           }
-        }
-      }) + '\n';
+        }) + '\n';
 
-      mcpProcess.stdin.write(callReq);
-    }, 1200);
+        mcpProcess.stdin.write(callReq);
+      } catch (e) {}
+    }, 400);
 
     setTimeout(() => {
-      mcpProcess.kill();
-      if (output) resolve(output);
-      else reject(new Error('Timeout calling Google Workspace MCP'));
-    }, 15000);
+      if (output.includes('Refresh token revoked') || output.includes('expired')) {
+        safeResolve(`Tài khoản Google (${USER_EMAIL}) đã hết hạn phiên xác thực OAuth (Refresh token expired). Cần đăng nhập lại để sử dụng tính năng này.`);
+      } else if (output) {
+        safeResolve(output);
+      } else {
+        safeResolve(`Dịch vụ Google Workspace chưa được cấp quyền truy cập hoặc hết hạn xác thực cho tài khoản ${USER_EMAIL}.`);
+      }
+    }, 3500);
   });
 }
 

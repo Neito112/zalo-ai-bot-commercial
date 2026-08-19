@@ -125,8 +125,10 @@ HỆ THỐNG CÔNG CỤ TOÀN NĂNG (TỰ CHỦ HÀNH ĐỘNG & CHẠY NGẦM Đ
 17. synthesize_speech: { text: "nội dung cần đọc thành giọng nói tiếng Việt" } -> Chuyển văn bản thành giọng nói AI truyền cảm và tạo file âm thanh MP3.
 18. save_user_memory: { key: "tên_thông_tin", value: "nội_dung_cần_nhớ" } -> Ghi nhớ sở thích, thói quen hay ghi chú quan trọng của người dùng.
 
-QUY TẮC PHẢN HỒI:
+QUY TẮC PHẢN HỒI & TÍNH TRUNG THỰC CAO NHẤT:
 - Khi cần dùng công cụ, xuất CHÍNH XÁC một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
+- Khi công cụ trả về dữ liệu thành công: Trích xuất và giải thích kết quả cụ thể, mạch lạc.
+- Khi công cụ báo lỗi (đặc biệt là lỗi hết hạn token Google Workspace / Refresh Token revoked/expired): Hãy thông báo THẲNG THẮN, RÕ RÀNG VÀ TRUNG THỰC cho người dùng biết lỗi kỹ thuật và hướng dẫn cách khắc phục. Tuyệt đối KHÔNG hứa hẹn ảo "em đang làm lại ngay", "chờ em một chút" hay bịa đặt khi bản thân không lấy được dữ liệu!
 - Nếu không cần công cụ hoặc sau khi đã có kết quả thực thi, trò chuyện mượt mà, chân thành, sâu sắc và tinh tế.`;
 
 // Failover Gateway: Dynamic Local / Cloud Model Router & Failover
@@ -477,10 +479,10 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
           agentEvents.emit('tool_result', { tool, resultPreview: toolOutput.slice(0, 120) });
 
           conversation.push(`{"tool": "${tool}", "status": "executed"}`);
-          conversation.push(`[KẾT QUẢ THỰC THI CÔNG CỤ ${tool}]:\n${toolOutput}\n\n[CHỈ ĐẠO QUAN TRỌNG]: Dựa trên kết quả thực thi ở trên, hãy tự suy nghĩ và trò chuyện với ${senderName} một cách hoàn toàn tự nhiên như một người trợ lý thật sự (thấu hiểu, linh hoạt, giải thích rõ ràng, dí dỏm hoặc ân cần). Tuyệt đối KHÔNG sử dụng các câu văn mẫu dập khuôn, cứng nhắc hay vô hồn!`);
+          conversation.push(`[KẾT QUẢ THỰC THI CÔNG CỤ ${tool}]:\n${toolOutput}\n\n[CHỈ ĐẠO TRUNG THỰC & CHUYÊN NGHIỆP]:\n1. Nếu kết quả thành công: Trích xuất thông tin, tóm tắt rõ ràng, súc tích và trả lời người dùng.\n2. Nếu kết quả là LỖI (như hết hạn token xác thực Google Workspace, thiếu quyền truy cập): Hãy giải thích TRUNG THỰC, NGẮN GỌN nguyên nhân và chỉ dẫn người dùng cần xác thực lại. TUYỆT ĐỐI KHÔNG hứa hẹn ảo "em đang lục hòm thư", "chờ em chút" hay đổ lỗi lung tung khi bản thân không có dữ liệu!`);
         } catch (e) {
           agentEvents.emit('tool_error', { error: e.message });
-          conversation.push(`[LỖI THỰC THI CÔNG CỤ]: ${e.message}. Hãy giải thích khéo léo và tự nhiên cho người dùng biết.`);
+          conversation.push(`[LỖI THỰC THI CÔNG CỤ]: ${e.message}.\n[CHỈ ĐẠO]: Hãy thông báo trung thực nguyên nhân lỗi cho người dùng biết, không được bịa đặt hay hứa hẹn ảo.`);
         }
       } else {
         // Đã có câu trả lời tự nhiên từ AI

@@ -37,6 +37,7 @@ import { cognitiveReflection } from './services/cognitive-reflection.js';
 import { smartLifeAssistant } from './services/smart-life-assistant.js';
 import { hybridRetriever } from './services/hybrid-retrieval-engine.js';
 import { toolSelfHealing } from './services/tool-self-healing-engine.js';
+import { googleWorkspace } from './services/google-workspace-native.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -463,11 +464,21 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
             } else {
               toolOutput = `Lỗi tạo giọng nói: ${voiceRes.error}`;
             }
+          } else if (tool === 'manage_email') {
+            toolOutput = await googleWorkspace.listEmails(args.query || '');
+          } else if (tool === 'manage_calendar') {
+            toolOutput = await googleWorkspace.listCalendarEvents();
+          } else if (tool === 'manage_drive') {
+            toolOutput = await googleWorkspace.searchDriveFiles(args.query || '');
+          } else if (tool === 'manage_docs') {
+            toolOutput = await googleWorkspace.createGoogleDoc(args.title || 'Tài liệu mới từ Zalo AI');
+          } else if (tool === 'manage_sheets') {
+            toolOutput = await googleWorkspace.createGoogleSheet(args.title || 'Bảng tính mới từ Zalo AI');
           } else if (tool === 'call_dynamic_mcp') {
             const { serverName, toolName, mcpArgs } = args;
             toolOutput = await callDynamicMcpTool(serverName, toolName, mcpArgs);
           } else {
-            // Forward to Google Workspace MCP
+            // Forward to Workspace Tool fallback
             toolOutput = await callWorkspaceTool(tool, args);
           }
 

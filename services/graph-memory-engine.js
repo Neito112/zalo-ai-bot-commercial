@@ -124,7 +124,39 @@ export class GraphMemoryEngine {
   }
 
   /**
-   * Tìm kiếm ngữ cảnh tri thức đồ thị phù hợp với câu hỏi của người dùng
+   * Truy vấn đa chặng (Multi-Hop Reasoning) để tìm các liên kết bắc cầu sâu sắc
+   */
+  queryMultiHopContext(entityId, maxDepth = 2) {
+    const cleanId = String(entityId).trim().toLowerCase();
+    const visited = new Set([cleanId]);
+    const hopChain = [];
+
+    let currentLevel = [cleanId];
+    for (let depth = 1; depth <= maxDepth; depth++) {
+      const nextLevel = [];
+      for (const curr of currentLevel) {
+        const outgoing = this.edges.filter(e => e.from === curr && !visited.has(e.to));
+        for (const edge of outgoing) {
+          visited.add(edge.to);
+          nextLevel.push(edge.to);
+          const targetNode = this.nodes.get(edge.to);
+          const sourceNode = this.nodes.get(edge.from);
+          hopChain.push({
+            depth,
+            from: sourceNode ? sourceNode.label : edge.from,
+            relation: edge.relation,
+            to: targetNode ? targetNode.label : edge.to,
+            targetType: targetNode?.type
+          });
+        }
+      }
+      currentLevel = nextLevel;
+    }
+    return hopChain;
+  }
+
+  /**
+   * Tìm kiếm ngữ cảnh tri thức đồ thị đa chặng phù hợp với câu hỏi của người dùng
    */
   retrieveRelevantGraphContext(userPrompt) {
     const lowerPrompt = userPrompt.toLowerCase();
@@ -138,13 +170,18 @@ export class GraphMemoryEngine {
 
     if (matchedNodes.length === 0) return '';
 
-    let context = '\n[BỘ NHỚ ĐỒ THỊ NGỮ NGHĨA LIÊN QUAN (SEMANTIC KNOWLEDGE GRAPH)]:\n';
+    let context = '\n[BỘ NHỚ ĐỒ THỊ NGỮ NGHĨA ĐA TẦNG (THREE-LAYER SEMANTIC GRAPH MEMORY)]:\n';
     matchedNodes.slice(0, 5).forEach(node => {
-      const ctx = this.queryEntityContext(node.id);
-      if (ctx) {
-        context += `🔹 Thực thể: "${node.label}" (${node.type})\n`;
-        ctx.outgoing.forEach(rel => {
-          context += `   ↳ Quan hệ: --[${rel.relation}]--> "${rel.target}"\n`;
+      const directCtx = this.queryEntityContext(node.id);
+      const multiHop = this.queryMultiHopContext(node.id, 2);
+
+      if (directCtx) {
+        context += `🔹 Thực thể: "${node.label}" [${node.type}]\n`;
+        directCtx.outgoing.forEach(rel => {
+          context += `   ↳ [Quan hệ trực tiếp]: --[${rel.relation}]--> "${rel.target}"\n`;
+        });
+        multiHop.filter(h => h.depth > 1).slice(0, 3).forEach(hop => {
+          context += `   ↳ [Liên kết bắc cầu Tầng 2]: "${hop.from}" --[${hop.relation}]--> "${hop.to}" (${hop.targetType || 'INFO'})\n`;
         });
       }
     });

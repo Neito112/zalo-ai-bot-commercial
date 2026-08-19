@@ -12,7 +12,7 @@ if (!fs.existsSync(REPORTS_DIR)) {
 
 export class CloudBrainSync {
   constructor() {
-    this.repoUrl = 'https://github.com/Neito112/zalo-ai-bot-commercial';
+    this.repoUrl = 'https://github.com/Neito112/zalo-ai-bot-omnipotent';
     this.brainFiles = [
       'knowledge-base.json',
       'conversation-memory.json',
@@ -21,6 +21,9 @@ export class CloudBrainSync {
     ];
   }
 
+  /**
+   * Tạo báo cáo nghiên cứu định kỳ dạng Markdown và lưu cục bộ
+   */
   generateMarkdownReport() {
     let knowledge = [];
     let evolution = [];
@@ -52,7 +55,7 @@ export class CloudBrainSync {
     const userCount = Object.keys(memory.sessions || {}).length;
     const learnedNotesCount = Object.values(memory.userProfiles || {}).reduce((acc, p) => acc + (p.learnedNotes?.length || 0), 0);
 
-    const reportMd = `# 🤖 BÁO CÁO TIẾN HÓA & NĂNG LỰC NÃO BỘ (ZALO AI BOT COMMERCIAL)
+    const reportMd = `# 🔬 BÁO CÁO NGHIÊN CỨU & TIẾN HÓA NÃO BỘ ĐỊNH KỲ (ZALO AI BOT)
 
 > **Thời gian tạo báo cáo:** ${timeStr}  
 > **Repository:** [${this.repoUrl}](${this.repoUrl})
@@ -73,41 +76,54 @@ ${topInsights || '_Đang thu thập dữ liệu trong chu kỳ tới..._'}
 
 ---
 
-## 🛡️ 3. CAM KẾT CHẤT LƯỢNG THƯƠNG MẠI
+## 🛡️ 3. CAM KẾT PHÁT TRIỂN
 - Bot liên tục duy trì phong cách con người tự nhiên 100%, không câu dập khuôn.
 - Dữ liệu não bộ được tự động lưu trữ và đồng bộ hóa lên GitHub Cloud sau mỗi kỳ báo cáo.
 `;
 
+    // Write to root RESEARCH_REPORT.md
     fs.writeFileSync('RESEARCH_REPORT.md', reportMd, 'utf-8');
+
+    // Archive copy to reports/ directory
     const archivePath = path.join(REPORTS_DIR, `research-report-${isoDate}.md`);
     fs.writeFileSync(archivePath, reportMd, 'utf-8');
 
     return { reportMd, timeStr, archivePath };
   }
 
+  /**
+   * Tự động tạo báo cáo định kỳ và push lên GitHub
+   */
   async generateAndPushPeriodicReport() {
     try {
       console.log('📝 Đang tạo báo cáo nghiên cứu định kỳ và chuẩn bị push lên GitHub...');
       const { timeStr } = this.generateMarkdownReport();
 
+      // Git add all brain files & report
       await execPromise(`git add RESEARCH_REPORT.md reports/ knowledge-base.json conversation-memory.json evolution-log.json`);
 
-      const commitMsg = `report: 3-hour periodic research & evolution report (${timeStr})`;
+      // Git commit
+      const commitMsg = `report: 1-hour periodic research & evolution report (${timeStr})`;
       try {
         await execPromise(`git commit -m "${commitMsg}"`);
       } catch (commitErr) {
         if (commitErr.stdout?.includes('nothing to commit') || commitErr.message?.includes('nothing to commit')) {
+          console.log('ℹ️ Dữ liệu não bộ đã ở trạng thái mới nhất trên GitHub.');
           return { success: true, message: 'Dữ liệu và báo cáo đã đồng bộ mới nhất trên GitHub.' };
         }
       }
 
+      // Git push
       await execPromise(`git push origin master`);
+      console.log(`🚀 ĐÃ TỰ ĐỘNG PUSH BÁO CÁO ĐỊNH KỲ LÊN GITHUB THÀNH CÔNG (${timeStr})!`);
+
       return {
         success: true,
         message: `🚀 Đã tự động tạo báo cáo nghiên cứu và push lên GitHub Cloud (${timeStr})!`,
         timestamp: timeStr
       };
     } catch (err) {
+      console.error('❌ Lỗi khi tự động push báo cáo lên GitHub:', err.message);
       return {
         success: false,
         message: `⚠️ Lỗi push báo cáo lên GitHub: ${err.message}`
@@ -115,6 +131,9 @@ ${topInsights || '_Đang thu thập dữ liệu trong chu kỳ tới..._'}
     }
   }
 
+  /**
+   * Backup local brain knowledge and memory to GitHub Cloud
+   */
   async backupToCloud(commitMsg = null) {
     try {
       const { timeStr } = this.generateMarkdownReport();

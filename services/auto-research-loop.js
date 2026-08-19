@@ -3,6 +3,7 @@ import path from 'path';
 import { collectApiKeys, MODELS_POOL, agentEvents, botConfig, generateContentWithFailover } from '../ai-agent.js';
 import { searchWeb } from './web-research.js';
 import { memoryStore } from './memory-store.js';
+import { cloudBrainSync } from './cloud-brain-sync.js';
 
 const KNOWLEDGE_BASE_FILE = path.resolve('knowledge-base.json');
 const EVOLUTION_LOG_FILE = path.resolve('evolution-log.json');
@@ -13,6 +14,7 @@ class AutonomousResearchEngine {
     this.cycleCount = 0;
     this.intervalMs = 60000; // Mỗi 60 giây nghiên cứu 1 chu kỳ
     this.timer = null;
+    this.reportTimer = null;
     this.topics = [
       'xu hướng trí tuệ nhân tạo và LLM mới nhất hôm nay',
       'nghệ thuật giao tiếp tinh tế và tâm lý học hành vi con người',
@@ -160,6 +162,14 @@ Hãy trả về dưới định dạng JSON duy nhất:
         this.runSingleResearchCycle();
       }
     }, this.intervalMs);
+
+    // Tự động tạo và push báo cáo nghiên cứu lên GitHub mỗi 1 tiếng (1 * 3600 * 1000 ms)
+    this.reportTimer = setInterval(async () => {
+      if (this.isRunning) {
+        console.log('⏰ [1-HOUR CRON] Đang kích hoạt tạo báo cáo định kỳ 1 tiếng và push lên GitHub Cloud...');
+        await cloudBrainSync.generateAndPushPeriodicReport();
+      }
+    }, 1 * 3600 * 1000);
   }
 
   stop() {
@@ -168,7 +178,15 @@ Hãy trả về dưới định dạng JSON duy nhất:
       clearInterval(this.timer);
       this.timer = null;
     }
+    if (this.reportTimer) {
+      clearInterval(this.reportTimer);
+      this.reportTimer = null;
+    }
     console.log(`🛑 [AUTONOMOUS RESEARCH] Vòng lặp nghiên cứu đã tạm dừng.`);
+  }
+
+  async triggerReportNow() {
+    return await cloudBrainSync.generateAndPushPeriodicReport();
   }
 
   getStatus() {

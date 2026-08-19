@@ -42,6 +42,7 @@ import { excelGenerator } from './services/excel-document-generator.js';
 import { getFinancialMarketData } from './services/financial-intelligence.js';
 import { documentIntelligence } from './services/document-intelligence.js';
 import { codeSandbox } from './services/code-sandbox-engine.js';
+import { translationEngine } from './services/translation-engine.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -129,7 +130,8 @@ HỆ THỐNG CÔNG CỤ THỰC THI (FUNCTION CALLING):
 19. get_financial_market_data: { symbol: "BTC|ETH|USD|EUR|..." } -> Tra cứu tỷ giá ngoại tệ USD/EUR/VND và giá tiền điện tử thời gian thực.
 20. extract_document_text: { filePath: "path/to/file.pdf|docx|txt|csv" } -> Đọc, bóc tách và trích xuất dữ liệu từ các tài liệu văn bản, bảng biểu trên máy.
 21. execute_code_sandbox: { language: "javascript|python", code: "mã nguồn cần thực thi" } -> Chạy mã nguồn Python/JavaScript tính toán, xử lý dữ liệu chính xác 100%.
-22. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
+22. translate_and_localize: { text: "nội dung cần dịch", targetLang?: "tiếng Anh|tiếng Việt|tiếng Nhật|...", tone?: "chuyên nghiệp|ngoại giao" } -> Dịch thuật và bản địa hóa văn bản, hợp đồng, email doanh nghiệp chuẩn xác.
+23. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
 
 CÁCH THỨC XUẤT LỆNH:
 - Khi cần dùng công cụ: Xuất DUY NHẤT một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
@@ -508,6 +510,9 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
           } else if (tool === 'execute_code_sandbox') {
             const sandRes = await codeSandbox.executeCode(args.language || 'javascript', args.code || '');
             toolOutput = sandRes.success ? `Kết quả thực thi ${sandRes.language}:\n${sandRes.stdout || '(Thực thi thành công, không có output ra màn hình)'}` : `Lỗi thực thi code: ${sandRes.error}\n${sandRes.stderr}`;
+          } else if (tool === 'translate_and_localize') {
+            const transRes = await translationEngine.translateText(args.text, args.targetLang || 'tiếng Việt', args.tone || 'chuyên nghiệp');
+            toolOutput = transRes.success ? `Bản dịch (${transRes.targetLang}):\n\n${transRes.translatedText}` : `Lỗi dịch thuật: ${transRes.error}`;
           } else if (tool === 'call_dynamic_mcp') {
             const { serverName, toolName, mcpArgs } = args;
             toolOutput = await callDynamicMcpTool(serverName, toolName, mcpArgs);

@@ -144,7 +144,6 @@ export class BotServiceManager {
     if (!this.bot) return false;
 
     try {
-      await this.bot.startPolling({ interval: 1000 });
       this.isPolling = true;
       botConfig.isPaused = false;
       agentEvents.emit('bot_status_change', { isPolling: true });
@@ -153,6 +152,13 @@ export class BotServiceManager {
       // Tự động kích hoạt Background Task Scheduler & Proactive Scout
       backgroundScheduler.startScheduler();
       proactiveScout.startRoaming(15);
+
+      // Start polling non-blocking (zalo-bot-js startPolling is an infinite loop)
+      this.bot.startPolling({ interval: 1000 }).catch(err => {
+        console.error('❌ Polling error:', err.message);
+        this.isPolling = false;
+        agentEvents.emit('bot_status_change', { isPolling: false });
+      });
 
       return true;
     } catch (err) {

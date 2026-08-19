@@ -8,6 +8,78 @@ const MCP_CONFIG_FILE = path.resolve('mcp-servers-config.json');
 
 // Built-in Known MCP Registry Catalog
 export const KNOWN_MCP_REGISTRY = {
+  canva: {
+    name: 'Canva Design MCP',
+    package: 'mcp-server-canva',
+    description: 'Thiết kế đồ họa, tạo banner, poster, xuất file thiết kế và slide thuyết trình trên Canva',
+    requiredEnv: ['CANVA_API_KEY'],
+    setupGuide: 'Lấy Canva API Token tại: https://www.canva.com/developers/',
+    command: 'npx',
+    args: ['-y', 'mcp-server-canva']
+  },
+  notion: {
+    name: 'Notion Workspace MCP',
+    package: '@modelcontextprotocol/server-notion',
+    description: 'Đọc, ghi trang, tạo database và quản lý tài liệu trên Notion',
+    requiredEnv: ['NOTION_API_KEY'],
+    setupGuide: 'Lấy Notion Integration Secret tại: https://www.notion.so/my-integrations',
+    command: 'npx',
+    args: ['-y', '@modelcontextprotocol/server-notion']
+  },
+  trello: {
+    name: 'Trello Board MCP',
+    package: 'mcp-server-trello',
+    description: 'Quản lý bảng công việc Kanban, tạo thẻ task, cập nhật trạng thái dự án trên Trello',
+    requiredEnv: ['TRELLO_API_KEY', 'TRELLO_TOKEN'],
+    setupGuide: 'Lấy Trello Developer API Key tại: https://trello.com/app-key',
+    command: 'npx',
+    args: ['-y', 'mcp-server-trello']
+  },
+  jira: {
+    name: 'Jira Software MCP',
+    package: 'mcp-server-jira',
+    description: 'Quản lý backlog, tạo ticket issue, theo dõi sprint và tiến độ dự án trên Jira',
+    requiredEnv: ['JIRA_HOST', 'JIRA_API_TOKEN', 'JIRA_EMAIL'],
+    setupGuide: 'Tạo API Token tại: https://id.atlassian.com/manage-profile/security/api-tokens',
+    command: 'npx',
+    args: ['-y', 'mcp-server-jira']
+  },
+  figma: {
+    name: 'Figma Design MCP',
+    package: 'figma-mcp',
+    description: 'Trích xuất file thiết kế UI/UX, lấy mã màu, typography và tài nguyên từ Figma',
+    requiredEnv: ['FIGMA_ACCESS_TOKEN'],
+    setupGuide: 'Tạo Personal Access Token tại Figma Settings -> Account -> Personal Access Tokens',
+    command: 'npx',
+    args: ['-y', 'figma-mcp']
+  },
+  linear: {
+    name: 'Linear Issue MCP',
+    package: 'mcp-server-linear',
+    description: 'Quản lý vấn đề và tiến độ phát triển phần mềm trên Linear',
+    requiredEnv: ['LINEAR_API_KEY'],
+    setupGuide: 'Lấy API Key tại Linear Settings -> Security & Access',
+    command: 'npx',
+    args: ['-y', 'mcp-server-linear']
+  },
+  airtable: {
+    name: 'Airtable Database MCP',
+    package: 'mcp-server-airtable',
+    description: 'Đọc và ghi dữ liệu bảng biểu, quản lý quan hệ bản ghi trên Airtable',
+    requiredEnv: ['AIRTABLE_API_KEY'],
+    setupGuide: 'Lấy Personal Access Token tại: https://airtable.com/create/tokens',
+    command: 'npx',
+    args: ['-y', 'mcp-server-airtable']
+  },
+  clickup: {
+    name: 'ClickUp Task MCP',
+    package: 'mcp-server-clickup',
+    description: 'Tạo công việc, theo dõi checklist và quản lý thời gian trên ClickUp',
+    requiredEnv: ['CLICKUP_API_KEY'],
+    setupGuide: 'Lấy API Key tại ClickUp Apps -> API Token',
+    command: 'npx',
+    args: ['-y', 'mcp-server-clickup']
+  },
   github: {
     name: 'GitHub MCP',
     package: '@modelcontextprotocol/server-github',
@@ -16,15 +88,6 @@ export const KNOWN_MCP_REGISTRY = {
     setupGuide: 'Tạo Personal Access Token (Classic) tại: https://github.com/settings/tokens với quyền repo',
     command: 'npx',
     args: ['-y', '@modelcontextprotocol/server-github']
-  },
-  notion: {
-    name: 'Notion MCP',
-    package: '@modelcontextprotocol/server-notion',
-    description: 'Đọc, ghi trang, tạo database và quản lý tài liệu trên Notion',
-    requiredEnv: ['NOTION_API_KEY'],
-    setupGuide: 'Lấy Notion Internal Integration Secret tại: https://www.notion.so/my-integrations',
-    command: 'npx',
-    args: ['-y', '@modelcontextprotocol/server-notion']
   },
   slack: {
     name: 'Slack MCP',
@@ -44,41 +107,14 @@ export const KNOWN_MCP_REGISTRY = {
     command: 'npx',
     args: ['-y', '@modelcontextprotocol/server-postgres', '${POSTGRES_CONNECTION_STRING}']
   },
-  filesystem: {
-    name: 'Local Filesystem MCP',
-    package: '@modelcontextprotocol/server-filesystem',
-    description: 'Đọc, ghi và quản lý file trong các thư mục được cấp phép trên máy',
-    requiredEnv: [],
-    setupGuide: 'Không cần API Key, tự động cấp quyền truy cập thư mục làm việc',
-    command: 'npx',
-    args: ['-y', '@modelcontextprotocol/server-filesystem', path.resolve('.')]
-  },
-  puppeteer: {
-    name: 'Browser Puppeteer MCP',
-    package: '@modelcontextprotocol/server-puppeteer',
-    description: 'Điều khiển trình duyệt web tự động, chụp ảnh màn hình trang web',
-    requiredEnv: [],
-    setupGuide: 'Tự động tải và chạy Chromium không cần cấu hình',
-    command: 'npx',
-    args: ['-y', '@modelcontextprotocol/server-puppeteer']
-  },
-  brave_search: {
-    name: 'Brave Search MCP',
-    package: '@modelcontextprotocol/server-brave-search',
-    description: 'Công cụ tìm kiếm web riêng tư chuyên sâu của Brave',
-    requiredEnv: ['BRAVE_API_KEY'],
-    setupGuide: 'Lấy API key miễn phí tại: https://brave.com/search/api/',
-    command: 'npx',
-    args: ['-y', '@modelcontextprotocol/server-brave-search']
-  },
   google_workspace: {
     name: 'Google Workspace MCP',
-    package: '@aaronsb/google-workspace-mcp',
+    package: 'googleapis',
     description: 'Quản lý toàn diện Gmail, Google Drive, Docs, Sheets, Calendar',
     requiredEnv: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'],
-    setupGuide: 'Đã được cấu hình sẵn trong hệ thống',
-    command: 'npx',
-    args: ['-y', '@aaronsb/google-workspace-mcp']
+    setupGuide: 'Thả file service-account.json hoặc nhập GOOGLE_REFRESH_TOKEN',
+    command: 'internal',
+    args: []
   }
 };
 
@@ -200,6 +236,61 @@ export class McpAutoProvisioner {
 
   getConnectedServers() {
     return this.installedServers.servers || {};
+  }
+
+  /**
+   * Tự động phát hiện khi người dùng gửi API Key / Token trong tin nhắn chat
+   */
+  autoDetectAndSaveKeyFromChat(text) {
+    if (!text || typeof text !== 'string') return null;
+
+    // 1. Kiểm tra định dạng KEY=VALUE (Ví dụ: CANVA_API_KEY=xxx, NOTION_API_KEY=xxx)
+    const keyValueMatch = text.match(/([A-Z0-9_]+)\s*=\s*([A-Za-z0-9_\-\.]{15,})/);
+    if (keyValueMatch) {
+      const keyName = keyValueMatch[1];
+      const keyValue = keyValueMatch[2].trim();
+      process.env[keyName] = keyValue;
+      this.persistEnvVar(keyName, keyValue);
+      return { keyName, keyValue, source: 'EXPLICIT_KEY' };
+    }
+
+    // 2. Kiểm tra token Canva (thường bắt đầu bằng canva_ hoặc độ dài > 20)
+    if (/^(canva_[a-zA-Z0-9_\-]{20,})/i.test(text.trim())) {
+      const keyName = 'CANVA_API_KEY';
+      const keyValue = text.trim();
+      process.env[keyName] = keyValue;
+      this.persistEnvVar(keyName, keyValue);
+      return { keyName, keyValue, app: 'Canva' };
+    }
+
+    // 3. Kiểm tra Notion secret (secret_...)
+    if (/^(secret_[a-zA-Z0-9]{30,})/i.test(text.trim())) {
+      const keyName = 'NOTION_API_KEY';
+      const keyValue = text.trim();
+      process.env[keyName] = keyValue;
+      this.persistEnvVar(keyName, keyValue);
+      return { keyName, keyValue, app: 'Notion' };
+    }
+
+    // 4. Kiểm tra Slack token (xoxb-... hoặc xoxp-...)
+    if (/^(xox[bpa]-[a-zA-Z0-9\-]{20,})/i.test(text.trim())) {
+      const keyName = 'SLACK_BOT_TOKEN';
+      const keyValue = text.trim();
+      process.env[keyName] = keyValue;
+      this.persistEnvVar(keyName, keyValue);
+      return { keyName, keyValue, app: 'Slack' };
+    }
+
+    // 5. Kiểm tra GitHub token (ghp_... hoặc github_pat_...)
+    if (/^(ghp_[a-zA-Z0-9]{30,}|github_pat_[a-zA-Z0-9_]{30,})/i.test(text.trim())) {
+      const keyName = 'GITHUB_PERSONAL_ACCESS_TOKEN';
+      const keyValue = text.trim();
+      process.env[keyName] = keyValue;
+      this.persistEnvVar(keyName, keyValue);
+      return { keyName, keyValue, app: 'GitHub' };
+    }
+
+    return null;
   }
 }
 

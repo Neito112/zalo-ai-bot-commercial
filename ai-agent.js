@@ -285,6 +285,16 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
 
   agentEvents.emit('user_message', { senderName, chatId, prompt: userPrompt, hasImage: !!imageContext });
 
+  // Tự động nhận diện nếu người dùng gửi API Key / Token để kết nối MCP
+  const detectedKey = mcpAutoProvisioner.autoDetectAndSaveKeyFromChat(userPrompt);
+  if (detectedKey) {
+    const keyMsg = `✅ ĐÃ TỰ ĐỘNG LƯU VÀ KÍCH HOẠT KẾT NỐI [${detectedKey.keyName}] THÀNH CÔNG!\n\nHệ thống đã lưu vào .env và kích hoạt dịch vụ ${detectedKey.app || detectedKey.keyName}. Bạn có thể bắt đầu giao việc ngay bây giờ.`;
+    memoryStore.addMessage(chatId, 'user', userPrompt);
+    memoryStore.addMessage(chatId, 'assistant', keyMsg);
+    agentEvents.emit('ai_response', { responseText: keyMsg, media: null });
+    return { text: keyMsg, media: null };
+  }
+
   // Handle incoming image attachment if present
   let attachedImagePart = null;
   if (imageContext) {

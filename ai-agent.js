@@ -311,11 +311,11 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
     memoryContext = `\n[THÔNG TIN ĐÃ GHI NHỚ VỀ NGƯỜI DÙNG]:\n${JSON.stringify(longTermFacts, null, 2)}\n`;
   }
 
-  // Get short-term history
-  const recentHistory = memoryStore.getHistory(chatId, 8);
+  // Get compressed short-term & episodic history
+  const compressedContext = memoryStore.getCompressedContext(chatId);
   let historyText = '';
-  if (recentHistory.length > 0) {
-    historyText = `\n[LỊCH SỬ TRÒ CHUYỆN GẦN ĐÂY]:\n` + recentHistory.map(h => `${h.role === 'user' ? 'Người dùng' : 'Trợ lý'}: ${h.content}`).join('\n') + '\n';
+  if (compressedContext) {
+    historyText = `\n${compressedContext}\n`;
   }
 
   // Get latest knowledge insights from continuous research loop

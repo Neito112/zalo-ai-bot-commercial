@@ -41,9 +41,39 @@ class MemoryStore {
     }
   }
 
-  getHistory(chatId, limit = 12) {
+  getHistory(chatId, limit = 10) {
     const list = this.sessions.get(chatId) || [];
     return list.slice(-limit);
+  }
+
+  /**
+   * Lấy ngữ cảnh nén thích ứng (Adaptive Context Compression)
+   * Kết hợp tóm tắt cuốn chiếu của các tin nhắn cũ + các lượt hội thoại gần nhất
+   */
+  getCompressedContext(chatId) {
+    const list = this.sessions.get(chatId) || [];
+    if (list.length === 0) return '';
+
+    if (list.length <= 6) {
+      return list.map(m => `${m.role === 'user' ? 'Người dùng' : 'Trợ lý'}: "${m.content}"`).join('\n');
+    }
+
+    // Tách 6 tin nhắn mới nhất giữ nguyên văn bản, các tin nhắn trước đó được nén lại
+    const olderMessages = list.slice(0, list.length - 6);
+    const recentMessages = list.slice(-6);
+
+    const compressedPoints = olderMessages
+      .filter(m => m.content && m.content.length > 5)
+      .slice(-4)
+      .map(m => `- [${m.role === 'user' ? 'Yêu cầu' : 'Đã xử lý'}]: ${m.content.slice(0, 80)}...`);
+
+    let output = '';
+    if (compressedPoints.length > 0) {
+      output += `[TÓM TẮT NGỮ CẢNH CÁC LƯỢT TRƯỚC]:\n${compressedPoints.join('\n')}\n\n`;
+    }
+    output += `[CÁC LƯỢT TRÒ CHUYỆN GẦN NHẤT]:\n` + recentMessages.map(m => `${m.role === 'user' ? 'Người dùng' : 'Trợ lý'}: "${m.content}"`).join('\n');
+
+    return output;
   }
 
   addMessage(chatId, role, content) {
@@ -52,8 +82,8 @@ class MemoryStore {
     }
     const list = this.sessions.get(chatId);
     list.push({ role, content, time: new Date().toISOString() });
-    if (list.length > 30) {
-      list.splice(0, list.length - 30);
+    if (list.length > 40) {
+      list.splice(0, list.length - 40);
     }
     this.save();
   }

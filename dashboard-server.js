@@ -3,7 +3,32 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicPath = path.join(__dirname, 'public');
+
+// Hàm tìm đúng file .env gốc
+export function getEnvPath() {
+  const candidates = [
+    path.join(__dirname, '.env'),
+    path.join(process.cwd(), '.env'),
+    path.resolve('.env'),
+    path.join(__dirname, '..', '.env')
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) return p;
+  }
+  return path.join(__dirname, '.env');
+}
+
+// Nạp biến môi trường từ file .env
+const envFile = getEnvPath();
+if (fs.existsSync(envFile)) {
+  dotenv.config({ path: envFile, override: true });
+}
+
 import { botServiceManager } from './bot-service.js';
 import { processUserRequest, agentEvents, botConfig, collectApiKeys, MODELS_POOL } from './ai-agent.js';
 import { memoryStore } from './services/memory-store.js';
@@ -14,10 +39,6 @@ import { githubAuthGuard } from './services/github-auth-guard.js';
 import { backgroundScheduler } from './services/background-task-scheduler.js';
 import { proactiveScout } from './services/autonomous-proactive-scout.js';
 import { localModelClient } from './services/local-model-client.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const publicPath = path.join(__dirname, 'public');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -91,8 +112,8 @@ app.post('/api/config', async (req, res) => {
   if (customSystemPrompt !== undefined) botConfig.customSystemPrompt = customSystemPrompt;
   if (temperature !== undefined) botConfig.temperature = temperature;
 
-  const envPath = path.resolve('.env');
-  let envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
+  const targetEnv = getEnvPath();
+  let envContent = fs.existsSync(targetEnv) ? fs.readFileSync(targetEnv, 'utf-8') : '';
   let envModified = false;
   let tokenChanged = false;
 
@@ -126,7 +147,7 @@ app.post('/api/config', async (req, res) => {
   }
 
   if (envModified) {
-    fs.writeFileSync(envPath, envContent, 'utf-8');
+    fs.writeFileSync(targetEnv, envContent, 'utf-8');
   }
 
   if (tokenChanged) {

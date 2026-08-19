@@ -1,4 +1,23 @@
-import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const candidates = [
+  path.join(__dirname, '.env'),
+  path.join(process.cwd(), '.env'),
+  path.resolve('.env'),
+  path.join(__dirname, '..', '.env')
+];
+for (const p of candidates) {
+  if (fs.existsSync(p)) {
+    dotenv.config({ path: p, override: true });
+  }
+}
+
 import { GoogleGenAI } from '@google/genai';
 import { callWorkspaceTool, callWorkspaceToolBatch } from './workspace-client.js';
 import { searchWeb, fetchUrlContent } from './services/web-research.js';

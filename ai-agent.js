@@ -13,6 +13,9 @@ import { backgroundScheduler } from './services/background-task-scheduler.js';
 import { multitaskOrchestrator } from './services/multitask-orchestrator.js';
 import { voiceIntelligence } from './services/voice-intelligence.js';
 import { localModelClient } from './services/local-model-client.js';
+import { graphMemory } from './services/graph-memory-engine.js';
+import { cognitiveReflection } from './services/cognitive-reflection.js';
+import { smartLifeAssistant } from './services/smart-life-assistant.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -320,10 +323,20 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
 - Bài học đúc kết từ các lần nhắn trước: ${notesStr}\n`;
   }
 
+  // 1. Tự động nhận diện lịch hẹn / nhắc việc ngầm
+  let implicitTaskNotice = '';
+  const implicitTask = smartLifeAssistant.detectAndScheduleImplicitTask(userPrompt, senderName, chatId);
+  if (implicitTask) {
+    implicitTaskNotice = `\n[HỆ THỐNG TRỢ LÝ]: Đã tự động lên lịch nhắc việc (${implicitTask.delayText || implicitTask.timeText}) cho ${senderName}. Hãy báo lại một cách tinh tế, ấm áp cho người dùng yên tâm.`;
+  }
+
+  // 2. Trích xuất ngữ cảnh đồ thị tri thức ngữ nghĩa (Graph Memory)
+  const graphContext = graphMemory.retrieveRelevantGraphContext(userPrompt);
+
   const emotionDirective = personaEngine.getDynamicPersonaDirective(userPrompt, senderName);
   const systemPrompt = botConfig.customSystemPrompt || DEFAULT_SYSTEM_PROMPT;
 
-  const promptHeader = `${systemPrompt}${emotionDirective}${profileContext}${memoryContext}${researchKnowledgeContext}${historyText}\nNgười dùng (${senderName}) vừa nhắn: "${userPrompt}"${attachedImagePart ? '\n[LƯU Ý ĐÍNH KÈM: Người dùng đã gửi kèm một bức ảnh. Bạn hãy quan sát kỹ từng chi tiết trong ảnh, đọc chữ (OCR) và trả lời thật thông minh, sắc bén và tận tình!]' : ''}`;
+  const promptHeader = `${systemPrompt}${emotionDirective}${profileContext}${graphContext}${memoryContext}${researchKnowledgeContext}${historyText}${implicitTaskNotice}\nNgười dùng (${senderName}) vừa nhắn: "${userPrompt}"${attachedImagePart ? '\n[LƯU Ý ĐÍNH KÈM: Người dùng đã gửi kèm một bức ảnh. Bạn hãy quan sát kỹ từng chi tiết trong ảnh, đọc chữ (OCR) và trả lời thật thông minh, sắc bén và tận tình!]' : ''}`;
 
   const conversation = [promptHeader];
   let loopCount = 0;
@@ -406,37 +419,24 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
             const provisionRes = await mcpAutoProvisioner.provisionMcp(args.appName, args.credentials || {});
             toolOutput = provisionRes.message;
           } else if (tool === 'call_dynamic_mcp') {
-            toolOutput = await callDynamicMcpTool(args.mcpKey, args.toolName, args.args || {});
-          } else if (tool === 'generate_image') {
-            const imgRes = await generateAiImage(args.prompt || userPrompt);
-            if (imgRes.success) {
-              generatedMediaResult = imgRes;
-              toolOutput = `✅ Ảnh đã được tạo thành công! Lưu tại: ${imgRes.filePath}. Đường dẫn xem trước: ${imgRes.imageUrl}`;
-            } else {
-              toolOutput = `⚠️ Lỗi tạo ảnh: ${imgRes.error}`;
-            }
+            const { tasks } = args;
+            const results = await multitaskOrchestrator.executeParallel(
+              tasks,
+              (prompt) => processUserRequest(prompt, senderName, chatId)
+            );
+            toolOutput = `Kết quả xử lý đa tác vụ song song:\n${JSON.stringify(results, null, 2)}`;
           } else if (tool === 'synthesize_speech') {
-            const voiceRes = await voiceIntelligence.synthesizeSpeech(args.text || userPrompt);
+            const textToSpeak = args.text || responseText.replace(/\{[\s\S]*?\}/g, '').trim();
+            const voiceRes = await voiceIntelligence.generateVietnameseSpeech(textToSpeak);
             if (voiceRes.success) {
-              generatedMediaResult = {
-                type: 'audio',
-                ...voiceRes
-              };
-              toolOutput = `✅ Giọng nói AI đã được tạo thành công! Tệp: ${voiceRes.filePath}. Nghe trực tiếp tại: ${voiceRes.audioUrl}`;
+              generatedMediaResult = { type: 'voice', filePath: voiceRes.filePath };
+              toolOutput = `Đã tạo file giọng nói tiếng Việt thành công tại ${voiceRes.filePath}.`;
             } else {
-              toolOutput = `⚠️ Lỗi tạo giọng nói: ${voiceRes.error}`;
+              toolOutput = `Lỗi tạo giọng nói: ${voiceRes.error}`;
             }
-          } else if (tool === 'save_user_memory') {
-            if (args.key && args.value) {
-              memoryStore.setLongTermFact(chatId, args.key, args.value);
-              toolOutput = `Đã ghi nhớ thông tin [${args.key}: ${args.value}] vào bộ nhớ dài hạn.`;
-            } else {
-              toolOutput = 'Thiếu key hoặc value để lưu bộ nhớ.';
-            }
-          } else if (tool === 'manage_email' && (args?.operation === 'trash_batch' || args?.operation === 'trash')) {
-            toolOutput = await fastBatchTrashEmails(args.query || 'category:promotions');
-          } else if (tool === 'manage_docs' && args?.operation === 'create') {
-            toolOutput = await fastCreateDoc(args.title, args.text);
+          } else if (tool === 'call_dynamic_mcp') {
+            const { serverName, toolName, mcpArgs } = args;
+            toolOutput = await callDynamicMcpTool(serverName, toolName, mcpArgs);
           } else {
             // Forward to Google Workspace MCP
             toolOutput = await callWorkspaceTool(tool, args);
@@ -452,7 +452,8 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
         }
       } else {
         // Đã có câu trả lời tự nhiên từ AI
-        const cleanResponse = responseText.replace(/\{[\s\S]*?"tool"[\s\S]*?\}/g, '').trim();
+        let cleanResponse = responseText.replace(/\{[\s\S]*?"tool"[\s\S]*?\}/g, '').trim();
+        cleanResponse = cognitiveReflection.sanitizeResponse(cleanResponse, senderName);
 
         if (cleanResponse) {
           memoryStore.addMessage(chatId, 'user', userPrompt);
@@ -473,7 +474,8 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
     const finalCall = await generateContentWithFailover([
       { text: conversation.join('\n\n') + `\n\n[YÊU CẦU]: Hãy tự suy nghĩ và viết một phản hồi tự nhiên, chân thành, có chiều sâu nhất gửi tới ${senderName}. Tuyệt đối không dùng câu dập khuôn!` }
     ]);
-    const finalHumanText = finalCall.text.replace(/\{[\s\S]*?"tool"[\s\S]*?\}/g, '').trim();
+    let finalHumanText = finalCall.text.replace(/\{[\s\S]*?"tool"[\s\S]*?\}/g, '').trim();
+    finalHumanText = cognitiveReflection.sanitizeResponse(finalHumanText, senderName);
 
     memoryStore.addMessage(chatId, 'user', userPrompt);
     memoryStore.addMessage(chatId, 'assistant', finalHumanText);
@@ -497,6 +499,18 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
  */
 async function triggerPostMessageLearning(chatId, senderName, userPrompt, aiResponse) {
   try {
+    // 1. Tự động cập nhật Đồ thị tri thức ngữ nghĩa (Graph Memory)
+    graphMemory.autoExtractGraphMemory(senderName, userPrompt, aiResponse);
+
+    // 2. Đánh giá chất lượng và ghi nhận tiến hóa tư duy
+    const evalQuality = cognitiveReflection.evaluateQuality(aiResponse);
+    cognitiveReflection.logEvolution({
+      senderName,
+      userPrompt,
+      qualityScore: evalQuality.score,
+      reason: evalQuality.reason
+    });
+
     const prompt = `Bạn là Module Tự Phản Chiếu & Tinh Chỉnh Cảm Xúc của Trợ Lý AI.
 Hội thoại vừa diễn ra:
 Người dùng (${senderName}): "${userPrompt}"

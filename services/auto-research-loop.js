@@ -122,6 +122,19 @@ Hãy trả về dưới định dạng JSON duy nhất:
       if (this.knowledgeBase.length > 50) this.knowledgeBase.pop();
       this.saveKnowledge();
 
+      // Nạp trực tiếp vào Đồ thị tri thức ngữ nghĩa (Graph Memory)
+      try {
+        const { graphMemory } = await import('./graph-memory-engine.js');
+        const topicNode = graphMemory.upsertNode(topic, 'RESEARCH_TOPIC', {
+          summary: insightData.summary,
+          iqScore: insightData.iqScore
+        });
+        if (insightData.soulImprovement) {
+          graphMemory.upsertNode(insightData.soulImprovement, 'SOUL_DIRECTIVE');
+          graphMemory.addRelation(topic, 'CẢI_THIỆN_CẢM_XÚC', insightData.soulImprovement);
+        }
+      } catch (e) {}
+
       // Lưu log tiến hóa
       const logEntry = {
         cycle: this.cycleCount,
@@ -140,7 +153,7 @@ Hãy trả về dưới định dạng JSON duy nhất:
         insightData
       });
 
-      console.log(`✅ [HOÀN THÀNH CHU KỲ #${this.cycleCount}] Đã nạp tri thức mới: "${insightData.summary}"`);
+      console.log(`✅ [TIẾN HÓA 24/7 #${this.cycleCount}] Đã tự nạp tri thức: "${insightData.summary}"`);
 
     } catch (err) {
       console.error(`❌ Lỗi trong chu kỳ nghiên cứu #${this.cycleCount}:`, err.message);

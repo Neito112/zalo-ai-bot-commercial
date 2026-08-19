@@ -4,6 +4,11 @@ import fs from 'fs';
 import path from 'path';
 
 const execPromise = util.promisify(exec);
+const REPORTS_DIR = path.resolve('reports');
+
+if (!fs.existsSync(REPORTS_DIR)) {
+  fs.mkdirSync(REPORTS_DIR, { recursive: true });
+}
 
 export class CloudBrainSync {
   constructor() {
@@ -11,22 +16,112 @@ export class CloudBrainSync {
     this.brainFiles = [
       'knowledge-base.json',
       'conversation-memory.json',
-      'evolution-log.json'
+      'evolution-log.json',
+      'RESEARCH_REPORT.md'
     ];
   }
 
-  /**
-   * Backup local brain knowledge and memory to GitHub Cloud
-   */
+  generateMarkdownReport() {
+    let knowledge = [];
+    let evolution = [];
+    let memory = {};
+
+    try {
+      if (fs.existsSync('knowledge-base.json')) {
+        knowledge = JSON.parse(fs.readFileSync('knowledge-base.json', 'utf-8'));
+      }
+      if (fs.existsSync('evolution-log.json')) {
+        evolution = JSON.parse(fs.readFileSync('evolution-log.json', 'utf-8'));
+      }
+      if (fs.existsSync('conversation-memory.json')) {
+        memory = JSON.parse(fs.readFileSync('conversation-memory.json', 'utf-8'));
+      }
+    } catch (e) {}
+
+    const now = new Date();
+    const timeStr = now.toLocaleString('vi-VN');
+    const isoDate = now.toISOString().replace(/[:.]/g, '-');
+
+    const topInsights = knowledge.slice(0, 5).map((k, i) => `### ${i + 1}. [Chủ đề: ${k.topic}]
+- 📌 **Đúc kết:** ${k.summary}
+- 💡 **Bài học cảm xúc / linh hồn:** ${k.soulImprovement || 'Không có'}
+- 🔑 **Sự thật cốt lõi:** ${k.keyFacts?.join('; ') || 'N/A'}
+- ⏱️ *Thời gian:* ${k.timestamp}
+`).join('\n');
+
+    const userCount = Object.keys(memory.sessions || {}).length;
+    const learnedNotesCount = Object.values(memory.userProfiles || {}).reduce((acc, p) => acc + (p.learnedNotes?.length || 0), 0);
+
+    const reportMd = `# 🤖 BÁO CÁO TIẾN HÓA & NĂNG LỰC NÃO BỘ (ZALO AI BOT COMMERCIAL)
+
+> **Thời gian tạo báo cáo:** ${timeStr}  
+> **Repository:** [${this.repoUrl}](${this.repoUrl})
+
+---
+
+## 📊 1. THỐNG KÊ TỔNG QUAN
+- 🧬 **Tổng số chu kỳ nghiên cứu tự chủ:** ${evolution.length} chu kỳ
+- 📚 **Tổng số bài học tri thức đã thu nạp:** ${knowledge.length} bài
+- 👥 **Số phiên hội thoại người dùng:** ${userCount} người
+- 🧠 **Số bài học đúc kết từ hội thoại:** ${learnedNotesCount} ghi chú
+- 🟢 **Trạng thái não bộ:** Đang tiến hóa liên tục 24/7
+
+---
+
+## 📖 2. CÁC TRI THỨC & BÀI HỌC TIẾN HÓA MỚI NHẤT
+${topInsights || '_Đang thu thập dữ liệu trong chu kỳ tới..._'}
+
+---
+
+## 🛡️ 3. CAM KẾT CHẤT LƯỢNG THƯƠNG MẠI
+- Bot liên tục duy trì phong cách con người tự nhiên 100%, không câu dập khuôn.
+- Dữ liệu não bộ được tự động lưu trữ và đồng bộ hóa lên GitHub Cloud sau mỗi kỳ báo cáo.
+`;
+
+    fs.writeFileSync('RESEARCH_REPORT.md', reportMd, 'utf-8');
+    const archivePath = path.join(REPORTS_DIR, `research-report-${isoDate}.md`);
+    fs.writeFileSync(archivePath, reportMd, 'utf-8');
+
+    return { reportMd, timeStr, archivePath };
+  }
+
+  async generateAndPushPeriodicReport() {
+    try {
+      console.log('📝 Đang tạo báo cáo nghiên cứu định kỳ và chuẩn bị push lên GitHub...');
+      const { timeStr } = this.generateMarkdownReport();
+
+      await execPromise(`git add RESEARCH_REPORT.md reports/ knowledge-base.json conversation-memory.json evolution-log.json`);
+
+      const commitMsg = `report: 3-hour periodic research & evolution report (${timeStr})`;
+      try {
+        await execPromise(`git commit -m "${commitMsg}"`);
+      } catch (commitErr) {
+        if (commitErr.stdout?.includes('nothing to commit') || commitErr.message?.includes('nothing to commit')) {
+          return { success: true, message: 'Dữ liệu và báo cáo đã đồng bộ mới nhất trên GitHub.' };
+        }
+      }
+
+      await execPromise(`git push origin master`);
+      return {
+        success: true,
+        message: `🚀 Đã tự động tạo báo cáo nghiên cứu và push lên GitHub Cloud (${timeStr})!`,
+        timestamp: timeStr
+      };
+    } catch (err) {
+      return {
+        success: false,
+        message: `⚠️ Lỗi push báo cáo lên GitHub: ${err.message}`
+      };
+    }
+  }
+
   async backupToCloud(commitMsg = null) {
     try {
-      const timestamp = new Date().toLocaleString('vi-VN');
-      const message = commitMsg || `brain: auto-backup brain memory & evolution knowledge (${timestamp})`;
+      const { timeStr } = this.generateMarkdownReport();
+      const message = commitMsg || `brain: auto-backup brain memory & evolution knowledge (${timeStr})`;
 
-      // Git add specific brain files
-      await execPromise(`git add knowledge-base.json conversation-memory.json evolution-log.json`);
+      await execPromise(`git add RESEARCH_REPORT.md reports/ knowledge-base.json conversation-memory.json evolution-log.json`);
       
-      // Git commit
       try {
         await execPromise(`git commit -m "${message}"`);
       } catch (commitErr) {
@@ -35,13 +130,12 @@ export class CloudBrainSync {
         }
       }
 
-      // Git push
       await execPromise(`git push origin master`);
 
       return {
         success: true,
-        message: `☁️ Đã sao lưu thành công toàn bộ Não Bộ (Trí nhớ, Tri thức, Nhật ký tiến hóa) lên GitHub Đám Mây!`,
-        timestamp
+        message: `☁️ Đã sao lưu thành công toàn bộ Não Bộ & Báo Cáo lên GitHub Đám Mây!`,
+        timestamp: timeStr
       };
     } catch (err) {
       return {
@@ -51,9 +145,6 @@ export class CloudBrainSync {
     }
   }
 
-  /**
-   * Sync brain knowledge from GitHub Cloud to local
-   */
   async syncFromCloud() {
     try {
       await execPromise(`git pull origin master`);

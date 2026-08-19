@@ -12,6 +12,7 @@ import { KNOWN_MCP_REGISTRY, mcpAutoProvisioner } from './services/mcp-auto-prov
 import { githubAuthGuard } from './services/github-auth-guard.js';
 import { backgroundScheduler } from './services/background-task-scheduler.js';
 import { proactiveScout } from './services/autonomous-proactive-scout.js';
+import { localModelClient } from './services/local-model-client.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,10 +56,13 @@ app.get('/api/status', (req, res) => {
 app.get('/api/config', (req, res) => {
   const keys = collectApiKeys();
   res.json({
-    apiKeys: keys,
+    provider: botConfig.provider || 'gemini',
     activeModel: botConfig.activeModel,
+    localEndpoint: botConfig.localEndpoint || 'http://localhost:11434/v1',
+    localModelName: botConfig.localModelName || 'llama3',
     temperature: botConfig.temperature,
     customSystemPrompt: botConfig.customSystemPrompt,
+    apiKeys: keys,
     zaloToken: process.env.ZALO_BOT_TOKEN ? `${process.env.ZALO_BOT_TOKEN.slice(0, 10)}...` : '',
     modelsPool: MODELS_POOL
   });
@@ -66,9 +70,12 @@ app.get('/api/config', (req, res) => {
 
 // POST Config Update
 app.post('/api/config', (req, res) => {
-  const { apiKeys, activeModel, customSystemPrompt, temperature } = req.body;
+  const { provider, activeModel, localEndpoint, localModelName, customSystemPrompt, temperature, apiKeys } = req.body;
 
+  if (provider) botConfig.provider = provider;
   if (activeModel) botConfig.activeModel = activeModel;
+  if (localEndpoint) botConfig.localEndpoint = localEndpoint;
+  if (localModelName) botConfig.localModelName = localModelName;
   if (customSystemPrompt !== undefined) botConfig.customSystemPrompt = customSystemPrompt;
   if (temperature !== undefined) botConfig.temperature = temperature;
 
@@ -90,7 +97,14 @@ app.post('/api/config', (req, res) => {
     agentEvents.emit('config_updated', { message: 'Đã cập nhật danh sách API Keys mới' });
   }
 
-  res.json({ success: true, message: 'Cấu hình đã được cập nhật thành công!' });
+  res.json({ success: true, message: 'Cấu hình AI Model & Provider đã được cập nhật thành công!' });
+});
+
+// Discover Local Models (Ollama, LM Studio, etc.)
+app.get('/api/local-models/discover', async (req, res) => {
+  const endpoint = req.query.endpoint || botConfig.localEndpoint || 'http://localhost:11434/v1';
+  const result = await localModelClient.discoverLocalModels(endpoint);
+  res.json(result);
 });
 
 // Bot Control: Start / Stop / Restart

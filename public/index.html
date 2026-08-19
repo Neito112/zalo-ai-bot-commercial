@@ -480,28 +480,65 @@
         </div>
       </div>
 
-      <!-- Key Manager -->
+      <!-- AI Model Provider Selector -->
       <div class="form-group">
-        <label>Danh Sách Gemini API Keys Pool (Tự động xoay vòng)</label>
-        <div id="keysList" class="keys-list"></div>
+        <label>Nguồn Xử Lý AI (Model Provider)</label>
+        <select id="selectProvider" onchange="toggleProviderUI()">
+          <option value="gemini">🌟 Google Gemini (Cloud API - Siêu tốc)</option>
+          <option value="local">💻 Local Model Cục Bộ (Ollama / LM Studio / Offline)</option>
+          <option value="hybrid">⚡ Hybrid Failover (Ưu tiên Local -> Fallback Gemini)</option>
+        </select>
       </div>
 
-      <div class="form-group">
-        <label>Thêm API Key Mới</label>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="newApiKey" placeholder="Nhập key AIzaSy... hoặc AQ.Ab..." style="flex: 1;">
-          <button class="btn btn-primary" onclick="addApiKey()">+ Thêm</button>
+      <!-- Local Model Settings (Hiển thị khi chọn Local hoặc Hybrid) -->
+      <div id="localModelSection" style="display: none; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 14px; flex-direction: column; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 700; font-size: 12px; color: #60a5fa;">💻 Cấu Hình Máy Chủ Local Model</span>
+          <span style="font-size: 10px; color: #93c5fd;">OpenAI Compatible</span>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 11px;">Endpoint API Cục Bộ</label>
+          <input type="text" id="localEndpoint" value="http://localhost:11434/v1" placeholder="http://localhost:11434/v1">
+          <div style="display: flex; gap: 6px; margin-top: 4px;">
+            <button class="btn btn-restart" style="padding: 2px 6px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:11434/v1')">Ollama</button>
+            <button class="btn btn-restart" style="padding: 2px 6px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:1234/v1')">LM Studio</button>
+            <button class="btn btn-restart" style="padding: 2px 6px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:8080/v1')">LocalAI</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 11px;">Tên Model Cục Bộ</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="localModelName" value="llama3" placeholder="llama3, qwen2.5, deepseek-r1:7b..." style="flex: 1;">
+            <button class="btn btn-primary" style="padding: 6px 10px; font-size: 11px;" onclick="discoverLocalModels()">🔍 Quét Models</button>
+          </div>
+          <div id="localModelsDiscoverStatus" style="font-size: 10.5px; color: var(--text-muted); margin-top: 4px;"></div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Mô Hình AI Mặc Định (Model Pool)</label>
-        <select id="selectModel" onchange="updateConfig()">
-          <option value="gemini-2.0-flash">Gemini 2.0 Flash (Siêu nhanh & Thông minh)</option>
-          <option value="gemini-flash-latest">Gemini Flash Latest</option>
-          <option value="gemini-1.5-pro">Gemini 1.5 Pro (Suy luận sâu)</option>
-          <option value="gemini-flash-lite-latest">Gemini Flash Lite</option>
-        </select>
+      <!-- Key Manager (Gemini Cloud) -->
+      <div id="geminiKeysSection">
+        <div class="form-group">
+          <label>Danh Sách Gemini API Keys Pool (Tự động xoay vòng)</label>
+          <div id="keysList" class="keys-list"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Thêm API Key Mới</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="newApiKey" placeholder="Nhập key AIzaSy... hoặc AQ.Ab..." style="flex: 1;">
+            <button class="btn btn-primary" onclick="addApiKey()">+ Thêm</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Mô Hình Cloud Gemini Mặc Định</label>
+          <select id="selectModel">
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Siêu nhanh & Thông minh)</option>
+            <option value="gemini-flash-latest">Gemini Flash Latest</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Suy luận sâu)</option>
+            <option value="gemini-flash-lite-latest">Gemini Flash Lite</option>
+          </select>
+        </div>
       </div>
 
       <div class="form-group">
@@ -680,15 +717,64 @@
       }
     }
 
+    function toggleProviderUI() {
+      const provider = document.getElementById('selectProvider').value;
+      const localSec = document.getElementById('localModelSection');
+      const geminiSec = document.getElementById('geminiKeysSection');
+
+      if (provider === 'local') {
+        localSec.style.display = 'flex';
+        geminiSec.style.display = 'none';
+      } else if (provider === 'hybrid') {
+        localSec.style.display = 'flex';
+        geminiSec.style.display = 'block';
+      } else {
+        localSec.style.display = 'none';
+        geminiSec.style.display = 'block';
+      }
+    }
+
+    function setEndpointPreset(url) {
+      document.getElementById('localEndpoint').value = url;
+    }
+
+    async function discoverLocalModels() {
+      const endpoint = document.getElementById('localEndpoint').value.trim();
+      const statusEl = document.getElementById('localModelsDiscoverStatus');
+      statusEl.style.color = '#38bdf8';
+      statusEl.innerText = '⏳ Đang quét danh sách model trên máy chủ cục bộ...';
+
+      try {
+        const res = await fetch(`/api/local-models/discover?endpoint=${encodeURIComponent(endpoint)}`);
+        const data = await res.json();
+
+        if (data.success && data.models && data.models.length > 0) {
+          statusEl.style.color = '#10b981';
+          statusEl.innerHTML = `✅ Tìm thấy ${data.models.length} model: ` + data.models.map(m => `<span style="cursor: pointer; text-decoration: underline; margin-right: 4px;" onclick="document.getElementById('localModelName').value='${m}'">${m}</span>`).join(', ');
+          document.getElementById('localModelName').value = data.models[0];
+        } else {
+          statusEl.style.color = '#ef4444';
+          statusEl.innerText = data.error || data.message || 'Không tìm thấy model nào.';
+        }
+      } catch (e) {
+        statusEl.style.color = '#ef4444';
+        statusEl.innerText = `Lỗi kết nối: ${e.message}`;
+      }
+    }
+
     async function loadConfig() {
       try {
         const res = await fetch('/api/config');
         currentConfig = await res.json();
         
+        document.getElementById('selectProvider').value = currentConfig.provider || 'gemini';
         document.getElementById('selectModel').value = currentConfig.activeModel || 'gemini-2.0-flash';
+        document.getElementById('localEndpoint').value = currentConfig.localEndpoint || 'http://localhost:11434/v1';
+        document.getElementById('localModelName').value = currentConfig.localModelName || 'llama3';
         document.getElementById('zaloToken').value = currentConfig.zaloToken || '';
         document.getElementById('customPrompt').value = currentConfig.customSystemPrompt || '';
 
+        toggleProviderUI();
         renderKeysList(currentConfig.apiKeys || []);
       } catch (e) {
         console.error(e);
@@ -740,10 +826,20 @@
     }
 
     async function saveFullConfig() {
-      const prompt = document.getElementById('customPrompt').value.trim();
+      const provider = document.getElementById('selectProvider').value;
       const model = document.getElementById('selectModel').value;
-      await saveConfigApi({ customSystemPrompt: prompt, activeModel: model });
-      alert('✅ Đã lưu cấu hình thành công!');
+      const localEndpoint = document.getElementById('localEndpoint').value.trim();
+      const localModelName = document.getElementById('localModelName').value.trim();
+      const prompt = document.getElementById('customPrompt').value.trim();
+
+      await saveConfigApi({
+        provider,
+        activeModel: model,
+        localEndpoint,
+        localModelName,
+        customSystemPrompt: prompt
+      });
+      alert('✅ Đã lưu cấu hình Não Bộ & Local Model thành công!');
     }
 
     async function updateConfig() {

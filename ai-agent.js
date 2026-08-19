@@ -12,6 +12,7 @@ import { visionIntelligence } from './services/vision-intelligence.js';
 import { backgroundScheduler } from './services/background-task-scheduler.js';
 import { multitaskOrchestrator } from './services/multitask-orchestrator.js';
 import { voiceIntelligence } from './services/voice-intelligence.js';
+import { localModelClient } from './services/local-model-client.js';
 
 // Global Event Broadcaster for Dashboard Logs
 export const agentEvents = {
@@ -29,9 +30,12 @@ export const agentEvents = {
   }
 };
 
-// Dynamic Config State
+// Dynamic Config State (Cloud Gemini & Local Models)
 export const botConfig = {
+  provider: 'gemini', // 'gemini' | 'local' | 'hybrid'
   activeModel: 'gemini-2.0-flash',
+  localEndpoint: 'http://localhost:11434/v1',
+  localModelName: 'llama3',
   temperature: 0.7,
   customSystemPrompt: '',
   isPaused: false
@@ -101,13 +105,46 @@ QUY TẮC PHẢN HỒI:
 - Khi cần dùng công cụ, xuất CHÍNH XÁC một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
 - Nếu không cần công cụ hoặc sau khi đã có kết quả thực thi, trò chuyện mượt mà, chân thành, sâu sắc và tinh tế.`;
 
-// Failover Gateway: Auto Key Pool Rotation & Model Switcher (Multimodal Support)
+// Failover Gateway: Dynamic Local / Cloud Model Router & Failover
 export async function generateContentWithFailover(contentsInput, preferredModel = null) {
-  const keysToUse = collectApiKeys();
   let lastError = null;
 
+  // 1. NẾU CHỌN LOCAL MODEL HOẶC HYBRID (ƯU TIÊN LOCAL TRƯỚC)
+  if (botConfig.provider === 'local' || botConfig.provider === 'hybrid') {
+    try {
+      agentEvents.emit('model_attempt', { provider: 'local', model: botConfig.localModelName, endpoint: botConfig.localEndpoint });
+      const localResult = await localModelClient.generateContent({
+        endpoint: botConfig.localEndpoint,
+        model: botConfig.localModelName,
+        contents: contentsInput,
+        temperature: botConfig.temperature
+      });
+
+      if (localResult && localResult.text) {
+        return {
+          text: localResult.text,
+          modelUsed: localResult.modelUsed,
+          keyUsedIndex: 'Local (Ollama/LMStudio)'
+        };
+      }
+    } catch (localErr) {
+      console.warn(`⚠️ Local Model [${botConfig.localModelName}] gặp lỗi:`, localErr.message);
+      lastError = localErr.message;
+      agentEvents.emit('model_error', { provider: 'local', error: localErr.message });
+
+      // Nếu chỉ dùng thuần Local và không cho phép fallback -> Throw lỗi
+      if (botConfig.provider === 'local') {
+        throw new Error(`Lỗi kết nối Local Model (${botConfig.localModelName}): ${localErr.message}`);
+      }
+      console.log('🔄 Đang tự động chuyển hướng sang Cloud Gemini Failover Gateway...');
+    }
+  }
+
+  // 2. CLOUD GEMINI FAILOVER POOL
+  const keysToUse = collectApiKeys();
+
   if (keysToUse.length === 0) {
-    throw new Error('Chưa có API Key nào được cấu hình trong .env');
+    throw new Error(lastError ? `Local Model lỗi (${lastError}) và chưa có Gemini API Key nào trong .env` : 'Chưa có API Key nào được cấu hình trong .env');
   }
 
   const modelCandidates = preferredModel 
@@ -121,7 +158,7 @@ export async function generateContentWithFailover(contentsInput, preferredModel 
     for (let m = 0; m < modelCandidates.length; m++) {
       const modelName = modelCandidates[m];
       try {
-        agentEvents.emit('model_attempt', { model: modelName, keyIndex: k + 1 });
+        agentEvents.emit('model_attempt', { provider: 'gemini', model: modelName, keyIndex: k + 1 });
         const response = await ai.models.generateContent({
           model: modelName,
           contents: contentsInput
@@ -132,12 +169,12 @@ export async function generateContentWithFailover(contentsInput, preferredModel 
         }
       } catch (err) {
         lastError = err.message;
-        agentEvents.emit('model_error', { model: modelName, keyIndex: k + 1, error: err.message });
+        agentEvents.emit('model_error', { provider: 'gemini', model: modelName, keyIndex: k + 1, error: err.message });
       }
     }
   }
 
-  throw new Error(`Tất cả API Key/Model đều bận hoặc gặp lỗi: ${lastError}`);
+  throw new Error(`Tất cả Local/Cloud Model đều bận hoặc gặp lỗi: ${lastError}`);
 }
 
 // Continuous Unrestricted Full Batch Trash Loop

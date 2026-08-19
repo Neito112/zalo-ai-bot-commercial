@@ -3,240 +3,165 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zalo AI Bot - Control Hub</title>
+  <title>Zalo AI Bot - Control Center</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #090d16;
-      --card-bg: rgba(17, 24, 39, 0.85);
-      --card-border: rgba(255, 255, 255, 0.08);
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --border: rgba(255, 255, 255, 0.1);
       --accent: #6366f1;
       --accent-hover: #4f46e5;
-      --accent-glow: rgba(99, 102, 241, 0.3);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --text: #f8fafc;
+      --muted: #94a3b8;
       --success: #10b981;
       --danger: #ef4444;
-      --warning: #f59e0b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
 
     body {
-      background-color: var(--bg-dark);
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
-      color: var(--text-main);
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.15) 0%, transparent 60%);
+      color: var(--text);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 24px 20px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* Top Navbar */
-    .navbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    .logo-box {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #6366f1, #38bdf8);
-      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 4px 15px var(--accent-glow);
+      padding: 20px;
     }
 
-    .logo-text h1 {
-      font-size: 18px;
+    .panel {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .title {
+      font-size: 16px;
       font-weight: 800;
-      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       background: linear-gradient(90deg, #fff, #a5b4fc);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .logo-text p {
-      font-size: 11.5px;
-      color: var(--text-muted);
-    }
-
-    .status-badge {
+    .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 11.5px;
+      font-weight: 700;
       background: rgba(16, 185, 129, 0.15);
       color: var(--success);
       border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
-    .status-badge.stopped {
+    .badge.stopped {
       background: rgba(239, 68, 68, 0.15);
       color: var(--danger);
       border-color: rgba(239, 68, 68, 0.3);
     }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
+    .badge-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: currentColor;
-      box-shadow: 0 0 8px currentColor;
     }
 
     /* Server Controls Bar */
-    .controls-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 16px 20px;
-      backdrop-filter: blur(12px);
-    }
-
-    .server-metrics {
-      display: flex;
-      gap: 20px;
-      font-size: 12.5px;
-      color: var(--text-muted);
-    }
-
-    .server-metrics strong {
-      color: var(--text-main);
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 10px;
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
-      padding: 9px 18px;
+      padding: 10px 12px;
       border-radius: 10px;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       border: none;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
 
     .btn-start {
       background: linear-gradient(135deg, #10b981, #059669);
       color: white;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
     }
-    .btn-start:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4); }
+    .btn-start:hover { opacity: 0.9; transform: translateY(-1px); }
 
     .btn-stop {
       background: linear-gradient(135deg, #ef4444, #dc2626);
       color: white;
-      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
     }
-    .btn-stop:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(239, 68, 68, 0.4); }
+    .btn-stop:hover { opacity: 0.9; transform: translateY(-1px); }
 
     .btn-restart {
       background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-      border: 1px solid var(--card-border);
+      color: var(--text);
+      border: 1px solid var(--border);
     }
     .btn-restart:hover { background: rgba(255, 255, 255, 0.12); }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--accent), #4f46e5);
       color: white;
-      box-shadow: 0 4px 14px var(--accent-glow);
-    }
-    .btn-primary:hover { transform: translateY(-1px); }
-
-    /* Configuration Card */
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 24px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .card-title {
-      font-size: 15px;
+      width: 100%;
+      padding: 12px;
+      font-size: 13.5px;
       font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #a5b4fc;
-      border-bottom: 1px solid var(--card-border);
-      padding-bottom: 12px;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
     }
+    .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); }
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
+    /* Form Fields */
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
-    .form-group.full-width {
-      grid-column: span 2;
-    }
-
     label {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
-      color: var(--text-muted);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     input, select, textarea {
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid var(--card-border);
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 10px 14px;
-      color: var(--text-main);
+      padding: 10px 12px;
+      color: var(--text);
       font-size: 13px;
       outline: none;
       transition: border-color 0.2s;
@@ -244,447 +169,228 @@
 
     input:focus, select:focus, textarea:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--accent-glow);
     }
 
-    /* Key Pool Tags */
-    .keys-list {
+    .key-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      max-height: 110px;
+      gap: 4px;
+      max-height: 85px;
       overflow-y: auto;
       background: rgba(0, 0, 0, 0.2);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
     }
 
     .key-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(255, 255, 255, 0.04);
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* Live Logs Stream */
-    .logs-box {
-      background: #040711;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 14px;
-      font-family: 'JetBrains Mono', monospace;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 4px 8px;
+      border-radius: 4px;
       font-size: 11.5px;
-      color: #93c5fd;
-      height: 180px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+      font-family: 'JetBrains Mono', monospace;
     }
 
-    .log-line {
-      display: flex;
-      gap: 8px;
-      line-height: 1.4;
-    }
-
-    .log-time { color: #64748b; }
-    .log-msg { color: #e2e8f0; }
-
-    /* GitHub Lock Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(10px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .modal-box {
-      background: #0f172a;
-      border: 1px solid rgba(99, 102, 241, 0.4);
-      border-radius: 16px;
-      padding: 28px;
-      max-width: 440px;
-      width: 90%;
+    .notice {
+      font-size: 11px;
+      color: var(--muted);
       text-align: center;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      margin-top: 4px;
     }
   </style>
 </head>
 <body>
 
-  <!-- GitHub Auth Guard Modal -->
-  <div id="githubAuthModal" class="modal-overlay">
-    <div class="modal-box">
-      <div style="font-size: 40px; margin-bottom: 12px;">🔒</div>
-      <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Xác Thực Thiết Bị R&D</h2>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">
-        Hệ thống được bảo vệ bởi GitHub Cloud Guard. Nhập GitHub Personal Access Token để mở khóa bảng điều khiển.
-      </p>
-      <input type="password" id="authGithubToken" placeholder="ghp_xxxxxxxxxxxx" style="width: 100%; margin-bottom: 12px;">
-      <div id="authErrorMsg" style="color: var(--danger); font-size: 11.5px; margin-bottom: 14px;"></div>
-      <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="verifyAndUnlockGithub()">
-        🔓 Xác Thực & Mở Khóa
-      </button>
-    </div>
-  </div>
-
-  <div class="container">
+  <div class="panel">
     
-    <!-- Top Navbar -->
-    <header class="navbar">
-      <div class="logo-box">
-        <div class="logo-icon">⚡</div>
-        <div class="logo-text">
-          <h1>Zalo AI Bot Omnipotent</h1>
-          <p>Bảng Điều Khiển Cấu Hình & Máy Chủ AI</p>
-        </div>
+    <!-- Header & Live Status -->
+    <div class="header">
+      <div class="title">
+        <span>⚡</span> Zalo AI Bot Control
       </div>
-
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <span id="statusBadge" class="status-badge">
-          <span class="status-dot"></span>
-          <span id="statusText">Đang Kết Nối...</span>
-        </span>
-      </div>
-    </header>
-
-    <!-- Server Control Bar -->
-    <div class="controls-bar">
-      <div class="server-metrics">
-        <div>Bot: <strong id="botName">Đang tải...</strong></div>
-        <div>Ping: <strong id="pingVal">-- ms</strong></div>
-        <div>RAM: <strong id="ramVal">-- MB</strong></div>
-        <div>Model: <strong id="activeModelBadge">Gemini 2.0</strong></div>
-      </div>
-
-      <div class="btn-group">
-        <button class="btn btn-start" onclick="startBot()">🟢 Bật Server</button>
-        <button class="btn btn-stop" onclick="stopBot()">🛑 Tắt Server</button>
-        <button class="btn btn-restart" onclick="restartBot()">🔄 Khởi Động Lại</button>
+      <div id="statusBadge" class="badge">
+        <span class="badge-dot"></span>
+        <span id="statusText">Đang Kết Nối...</span>
       </div>
     </div>
 
-    <!-- Main Configuration Card: API & AI Model Setup -->
-    <main class="card">
-      <div class="card-title">
-        ⚙️ Cấu Hình API & Nguồn Não Bộ AI (Cloud / Local)
+    <!-- Server Controls -->
+    <div class="controls">
+      <button class="btn btn-start" onclick="startBot()">🟢 Bật Server</button>
+      <button class="btn btn-stop" onclick="stopBot()">🛑 Tắt Server</button>
+      <button class="btn btn-restart" onclick="restartBot()">🔄 Khởi Động</button>
+    </div>
+
+    <!-- Zalo Bot Token -->
+    <div class="form-group">
+      <label>1. Zalo Bot Token</label>
+      <div style="display: flex; gap: 6px;">
+        <input type="password" id="zaloToken" placeholder="Nhập Token Bot Zalo..." style="flex: 1;">
+        <button class="btn btn-restart" style="padding: 0 10px;" onclick="toggleToken()">👁️</button>
       </div>
+    </div>
 
-      <div class="form-grid">
-        
-        <!-- Zalo Bot Token -->
-        <div class="form-group full-width">
-          <label>Zalo Bot Token</label>
-          <div style="display: flex; gap: 8px;">
-            <input type="password" id="zaloToken" placeholder="Nhập Zalo Bot Token từ BotFather (hoặc cấu hình trong .env)" style="flex: 1;">
-            <button class="btn btn-restart" onclick="toggleTokenVisibility()">👁️</button>
-          </div>
-        </div>
+    <!-- AI Model Provider -->
+    <div class="form-group">
+      <label>2. Nguồn Xử Lý AI (Model Provider)</label>
+      <select id="selectProvider" onchange="toggleProvider()">
+        <option value="gemini">🌟 Google Gemini (Cloud API - Siêu tốc)</option>
+        <option value="local">💻 Local Model Cục Bộ (Ollama / LM Studio)</option>
+        <option value="hybrid">⚡ Hybrid Failover (Ưu tiên Local -> Fallback Cloud)</option>
+      </select>
+    </div>
 
-        <!-- AI Model Provider -->
-        <div class="form-group">
-          <label>Nguồn Xử Lý AI (Model Provider)</label>
-          <select id="selectProvider" onchange="toggleProviderUI()">
-            <option value="gemini">🌟 Google Gemini (Cloud API - Siêu tốc)</option>
-            <option value="local">💻 Local Model Cục Bộ (Ollama / LM Studio)</option>
-            <option value="hybrid">⚡ Hybrid Failover (Ưu tiên Local -> Fallback Cloud)</option>
-          </select>
-        </div>
-
-        <!-- Gemini Model Selection -->
-        <div class="form-group" id="geminiModelGroup">
-          <label>Mô Hình Cloud Gemini</label>
-          <select id="selectModel">
-            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Siêu nhanh & Toàn năng)</option>
-            <option value="gemini-flash-latest">Gemini Flash Latest</option>
-            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Suy luận sâu)</option>
-            <option value="gemini-flash-lite-latest">Gemini Flash Lite</option>
-          </select>
-        </div>
-
-        <!-- Local Model Settings (Hiển thị khi chọn Local hoặc Hybrid) -->
-        <div id="localModelGroup" class="form-group full-width" style="display: none; background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 12px; padding: 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <strong style="font-size: 12px; color: #60a5fa;">💻 Cài Đặt Local Model (Ollama / LM Studio / llama.cpp)</strong>
-            <div style="display: flex; gap: 6px;">
-              <button class="btn btn-restart" style="padding: 2px 8px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:11434/v1')">Ollama</button>
-              <button class="btn btn-restart" style="padding: 2px 8px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:1234/v1')">LM Studio</button>
-              <button class="btn btn-restart" style="padding: 2px 8px; font-size: 10px;" onclick="setEndpointPreset('http://localhost:8080/v1')">LocalAI</button>
-            </div>
-          </div>
-
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Endpoint API Cục Bộ</label>
-              <input type="text" id="localEndpoint" value="http://localhost:11434/v1" placeholder="http://localhost:11434/v1">
-            </div>
-
-            <div class="form-group">
-              <label>Tên Model Cục Bộ</label>
-              <div style="display: flex; gap: 8px;">
-                <input type="text" id="localModelName" value="llama3" placeholder="llama3, qwen2.5, deepseek-r1:7b..." style="flex: 1;">
-                <button class="btn btn-primary" style="padding: 8px 12px; font-size: 11px;" onclick="discoverLocalModels()">🔍 Quét Models</button>
-              </div>
-            </div>
-          </div>
-          <div id="localModelsDiscoverStatus" style="font-size: 11px; margin-top: 6px; color: var(--text-muted);"></div>
-        </div>
-
-        <!-- Gemini API Key Pool Manager -->
-        <div id="geminiKeysGroup" class="form-group full-width">
-          <label>Kho Khóa Gemini API Key Pool (Tự động xoay vòng khi hết quota)</label>
-          <div id="keysList" class="keys-list" style="margin-bottom: 8px;"></div>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="newApiKey" placeholder="Dán Gemini API Key mới (AIzaSy...)" style="flex: 1;">
-            <button class="btn btn-primary" onclick="addApiKey()">+ Thêm Key</button>
-          </div>
-        </div>
-
-        <!-- Personality Prompt -->
-        <div class="form-group full-width">
-          <label>Prompt Tính Cách & Phong Cách Nói Chuyện (Soulful Human Persona)</label>
-          <textarea id="customPrompt" rows="3" placeholder="Tùy chỉnh tính cách của trợ lý AI (mặc định: trợ lý con người tự nhiên 100%, có hồn, thông minh, tinh tế)..."></textarea>
-        </div>
-
+    <!-- Gemini Cloud Keys Group -->
+    <div id="geminiGroup" class="form-group">
+      <label>3. Danh Sách Gemini API Keys Pool</label>
+      <div id="keysList" class="key-list" style="margin-bottom: 6px;"></div>
+      <div style="display: flex; gap: 6px;">
+        <input type="text" id="newKey" placeholder="Thêm Gemini API Key mới (AIzaSy...)" style="flex: 1;">
+        <button class="btn btn-restart" onclick="addKey()">+ Thêm</button>
       </div>
+    </div>
 
-      <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px;" onclick="saveFullConfig()">
-        💾 Lưu Cấu Hình Não Bộ & Khởi Chạy
-      </button>
-    </main>
+    <!-- Local Model Group -->
+    <div id="localGroup" style="display: none; flex-direction: column; gap: 10px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 10px; padding: 10px;">
+      <div class="form-group">
+        <label>Endpoint Local Model</label>
+        <input type="text" id="localEndpoint" value="http://localhost:11434/v1" placeholder="http://localhost:11434/v1">
+      </div>
+      <div class="form-group">
+        <label>Tên Model Cục Bộ</label>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="localModelName" value="llama3" placeholder="llama3, qwen2.5, deepseek-r1..." style="flex: 1;">
+          <button class="btn btn-restart" onclick="discoverModels()">🔍 Quét</button>
+        </div>
+      </div>
+    </div>
 
-    <!-- Live Logs Console -->
-    <section class="card" style="padding: 18px 24px;">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 13px; font-weight: 700; color: #94a3b8;">📟 Nhật Ký Vận Hành Trực Tiếp (Live Server Logs)</span>
-        <button class="btn btn-restart" style="padding: 3px 8px; font-size: 11px;" onclick="clearLogs()">Xóa Log</button>
-      </div>
-      <div id="logsBox" class="logs-box">
-        <div class="log-line"><span class="log-time">[System]</span> <span class="log-msg">Máy chủ điều khiển đã sẵn sàng. Toàn bộ tương tác đa tác vụ, ảnh, giọng nói, tra cứu diễn ra trực tiếp trên tin nhắn Zalo.</span></div>
-      </div>
-    </section>
+    <!-- Save Button -->
+    <button class="btn btn-primary" onclick="saveConfig()">
+      💾 Lưu Cấu Hình & Áp Dụng
+    </button>
+
+    <div class="notice">
+      💬 Mọi tính năng hỏi đáp, tạo ảnh, giọng nói, đa tác vụ đều tương tác trực tiếp 100% qua tin nhắn Zalo.
+    </div>
 
   </div>
 
   <script>
     let currentConfig = {};
 
-    // Check GitHub Auth Status
-    async function checkAuthStatus() {
-      try {
-        const res = await fetch('/api/auth/status');
-        const data = await res.json();
-        const modal = document.getElementById('githubAuthModal');
-        if (data.authenticated) {
-          modal.style.display = 'none';
-        } else {
-          modal.style.display = 'flex';
-        }
-      } catch (e) {}
-    }
+    function toggleProvider() {
+      const p = document.getElementById('selectProvider').value;
+      const localGrp = document.getElementById('localGroup');
+      const geminiGrp = document.getElementById('geminiGroup');
 
-    async function verifyAndUnlockGithub() {
-      const tokenInput = document.getElementById('authGithubToken');
-      const errorEl = document.getElementById('authErrorMsg');
-      const token = tokenInput.value.trim();
-
-      if (!token) {
-        errorEl.innerText = 'Vui lòng nhập GitHub Token của bạn.';
-        return;
-      }
-
-      errorEl.style.color = '#38bdf8';
-      errorEl.innerText = '⏳ Đang xác thực với GitHub API...';
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          errorEl.style.color = '#10b981';
-          errorEl.innerText = '✅ Xác thực thành công! Đang mở khóa...';
-          setTimeout(() => { checkAuthStatus(); }, 600);
-        } else {
-          errorEl.style.color = '#ef4444';
-          errorEl.innerText = data.message || 'Xác thực thất bại.';
-        }
-      } catch (e) {
-        errorEl.style.color = '#ef4444';
-        errorEl.innerText = `Lỗi kết nối: ${e.message}`;
-      }
-    }
-
-    // Toggle Provider UI
-    function toggleProviderUI() {
-      const provider = document.getElementById('selectProvider').value;
-      const localGroup = document.getElementById('localModelGroup');
-      const geminiKeys = document.getElementById('geminiKeysGroup');
-      const geminiModel = document.getElementById('geminiModelGroup');
-
-      if (provider === 'local') {
-        localGroup.style.display = 'flex';
-        geminiKeys.style.display = 'none';
-        geminiModel.style.display = 'none';
-      } else if (provider === 'hybrid') {
-        localGroup.style.display = 'flex';
-        geminiKeys.style.display = 'flex';
-        geminiModel.style.display = 'flex';
+      if (p === 'local') {
+        localGrp.style.display = 'flex';
+        geminiGrp.style.display = 'none';
+      } else if (p === 'hybrid') {
+        localGrp.style.display = 'flex';
+        geminiGrp.style.display = 'flex';
       } else {
-        localGroup.style.display = 'none';
-        geminiKeys.style.display = 'flex';
-        geminiModel.style.display = 'flex';
+        localGrp.style.display = 'none';
+        geminiGrp.style.display = 'flex';
       }
     }
 
-    function setEndpointPreset(url) {
-      document.getElementById('localEndpoint').value = url;
+    function toggleToken() {
+      const el = document.getElementById('zaloToken');
+      el.type = el.type === 'password' ? 'text' : 'password';
     }
 
-    async function discoverLocalModels() {
-      const endpoint = document.getElementById('localEndpoint').value.trim();
-      const statusEl = document.getElementById('localModelsDiscoverStatus');
-      statusEl.style.color = '#38bdf8';
-      statusEl.innerText = '⏳ Đang quét danh sách model trên máy chủ cục bộ...';
-
-      try {
-        const res = await fetch(`/api/local-models/discover?endpoint=${encodeURIComponent(endpoint)}`);
-        const data = await res.json();
-
-        if (data.success && data.models && data.models.length > 0) {
-          statusEl.style.color = '#10b981';
-          statusEl.innerHTML = `✅ Tìm thấy ${data.models.length} model: ` + data.models.map(m => `<span style="cursor: pointer; text-decoration: underline; margin-right: 4px;" onclick="document.getElementById('localModelName').value='${m}'">${m}</span>`).join(', ');
-          document.getElementById('localModelName').value = data.models[0];
-        } else {
-          statusEl.style.color = '#ef4444';
-          statusEl.innerText = data.error || data.message || 'Không tìm thấy model nào.';
-        }
-      } catch (e) {
-        statusEl.style.color = '#ef4444';
-        statusEl.innerText = `Lỗi kết nối: ${e.message}`;
-      }
-    }
-
-    function toggleTokenVisibility() {
-      const input = document.getElementById('zaloToken');
-      input.type = input.type === 'password' ? 'text' : 'password';
-    }
-
-    // Load & Render Status
     async function loadStatus() {
       try {
         const res = await fetch('/api/status');
         const data = await res.json();
-
         const badge = document.getElementById('statusBadge');
         const text = document.getElementById('statusText');
 
         if (data.isPolling) {
-          badge.className = 'status-badge';
-          text.innerText = 'Đang Chạy (Polling)';
+          badge.className = 'badge';
+          text.innerText = 'Đang Chạy';
         } else {
-          badge.className = 'status-badge stopped';
-          text.innerText = 'Đã Dừng (Stopped)';
+          badge.className = 'badge stopped';
+          text.innerText = 'Đã Dừng';
         }
-
-        document.getElementById('botName').innerText = data.botName || 'Zalo AI Bot';
-        document.getElementById('pingVal').innerText = `${data.ping || '--'} ms`;
-        document.getElementById('ramVal').innerText = `${data.ram || '--'} MB`;
-        document.getElementById('activeModelBadge').innerText = data.activeModel || 'Gemini';
       } catch (e) {}
     }
 
-    // Load Config
     async function loadConfig() {
       try {
         const res = await fetch('/api/config');
         currentConfig = await res.json();
 
         document.getElementById('selectProvider').value = currentConfig.provider || 'gemini';
-        document.getElementById('selectModel').value = currentConfig.activeModel || 'gemini-2.0-flash';
+        document.getElementById('zaloToken').value = currentConfig.zaloToken || '';
         document.getElementById('localEndpoint').value = currentConfig.localEndpoint || 'http://localhost:11434/v1';
         document.getElementById('localModelName').value = currentConfig.localModelName || 'llama3';
-        document.getElementById('zaloToken').value = currentConfig.zaloToken || '';
-        document.getElementById('customPrompt').value = currentConfig.customSystemPrompt || '';
 
-        toggleProviderUI();
-        renderKeysList(currentConfig.apiKeys || []);
+        toggleProvider();
+        renderKeys(currentConfig.apiKeys || []);
       } catch (e) {}
     }
 
-    function renderKeysList(keys) {
-      const listEl = document.getElementById('keysList');
-      listEl.innerHTML = '';
-
+    function renderKeys(keys) {
+      const el = document.getElementById('keysList');
+      el.innerHTML = '';
       if (keys.length === 0) {
-        listEl.innerHTML = '<div style="color: var(--text-muted); font-size: 11.5px;">Chưa có Gemini API Key nào</div>';
+        el.innerHTML = '<div style="color: var(--muted); font-size: 11px;">Chưa có API Key nào</div>';
         return;
       }
-
       keys.forEach((k, idx) => {
         const item = document.createElement('div');
         item.className = 'key-item';
-        const masked = k.slice(0, 10) + '...' + k.slice(-6);
+        const masked = k.slice(0, 8) + '...' + k.slice(-6);
         item.innerHTML = `
-          <span><span style="color: var(--accent); font-weight: 700;">#${idx + 1}</span> ${masked}</span>
-          <button style="background: none; border: none; color: #ef4444; cursor: pointer;" onclick="deleteKey('${k}')">🗑️</button>
+          <span>#${idx+1} ${masked}</span>
+          <button style="background:none; border:none; color:#ef4444; cursor:pointer;" onclick="deleteKey('${k}')">✕</button>
         `;
-        listEl.appendChild(item);
+        el.appendChild(item);
       });
     }
 
-    async function addApiKey() {
-      const input = document.getElementById('newApiKey');
+    async function addKey() {
+      const input = document.getElementById('newKey');
       const key = input.value.trim();
       if (!key) return;
 
       const keys = currentConfig.apiKeys || [];
-      if (!keys.includes(key)) {
-        keys.push(key);
-      }
+      if (!keys.includes(key)) keys.push(key);
 
-      await saveConfigApi({ apiKeys: keys });
+      await saveApi({ apiKeys: keys });
       input.value = '';
       await loadConfig();
     }
 
-    async function deleteKey(keyToDelete) {
-      const keys = (currentConfig.apiKeys || []).filter(k => k !== keyToDelete);
-      await saveConfigApi({ apiKeys: keys });
+    async function deleteKey(key) {
+      const keys = (currentConfig.apiKeys || []).filter(k => k !== key);
+      await saveApi({ apiKeys: keys });
       await loadConfig();
     }
 
-    async function saveFullConfig() {
+    async function saveConfig() {
       const provider = document.getElementById('selectProvider').value;
-      const model = document.getElementById('selectModel').value;
+      const zaloToken = document.getElementById('zaloToken').value.trim();
       const localEndpoint = document.getElementById('localEndpoint').value.trim();
       const localModelName = document.getElementById('localModelName').value.trim();
-      const prompt = document.getElementById('customPrompt').value.trim();
 
-      await saveConfigApi({
+      await saveApi({
         provider,
-        activeModel: model,
+        zaloToken,
         localEndpoint,
-        localModelName,
-        customSystemPrompt: prompt
+        localModelName
       });
-      alert('✅ Đã lưu cấu hình API & Máy chủ AI thành công!');
+
+      alert('✅ Đã lưu cấu hình API thành công!');
     }
 
-    async function saveConfigApi(payload) {
+    async function saveApi(payload) {
       await fetch('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -692,7 +398,22 @@
       });
     }
 
-    // Bot Controls
+    async function discoverModels() {
+      const ep = document.getElementById('localEndpoint').value.trim();
+      try {
+        const res = await fetch(`/api/local-models/discover?endpoint=${encodeURIComponent(ep)}`);
+        const data = await res.json();
+        if (data.success && data.models && data.models.length > 0) {
+          document.getElementById('localModelName').value = data.models[0];
+          alert(`✅ Tìm thấy ${data.models.length} model: ${data.models.join(', ')}`);
+        } else {
+          alert(data.error || 'Không tìm thấy model local nào.');
+        }
+      } catch (e) {
+        alert(`Lỗi kết nối: ${e.message}`);
+      }
+    }
+
     async function startBot() {
       await fetch('/api/bot/start', { method: 'POST' });
       await loadStatus();
@@ -708,49 +429,10 @@
       await loadStatus();
     }
 
-    // Real-time Event Stream
-    function connectLogStream() {
-      const logsBox = document.getElementById('logsBox');
-      const es = new EventSource('/api/events');
-
-      es.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data);
-          const line = document.createElement('div');
-          line.className = 'log-line';
-
-          const time = new Date(payload.timestamp).toLocaleTimeString();
-          let text = '';
-
-          if (payload.type === 'message_in') {
-            text = `📩 [Zalo In] ${payload.data.senderName}: "${payload.data.preview}"`;
-          } else if (payload.type === 'tool_call') {
-            text = `🛠️ [Tool] Thực thi ${payload.data.tool}...`;
-          } else if (payload.type === 'message_out') {
-            text = `💬 [Zalo Out -> ${payload.data.senderName}]: ${payload.data.preview}`;
-          } else if (payload.type === 'model_attempt') {
-            text = `🤖 [AI ${payload.data.provider || 'Model'}] Gọi ${payload.data.model}...`;
-          } else {
-            text = `ℹ️ [${payload.type}] ${JSON.stringify(payload.data)}`;
-          }
-
-          line.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-msg">${text}</span>`;
-          logsBox.appendChild(line);
-          logsBox.scrollTop = logsBox.scrollHeight;
-        } catch (e) {}
-      };
-    }
-
-    function clearLogs() {
-      document.getElementById('logsBox').innerHTML = '';
-    }
-
     // Init
-    checkAuthStatus();
     loadStatus();
     loadConfig();
-    connectLogStream();
-    setInterval(loadStatus, 4000);
+    setInterval(loadStatus, 3000);
   </script>
 </body>
 </html>

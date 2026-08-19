@@ -444,43 +444,49 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
 
           agentEvents.emit('tool_result', { tool, resultPreview: toolOutput.slice(0, 120) });
 
-          conversation.push(responseText);
-          conversation.push(`[KẾT QUẢ THỰC THI CÔNG CỤ ${tool}]:\n${toolOutput}\n\nHãy phân tích và trả lời người dùng một cách ấm áp, thông minh, tinh tế và đầy đủ cảm xúc.`);
+          conversation.push(`{"tool": "${tool}", "status": "executed"}`);
+          conversation.push(`[KẾT QUẢ THỰC THI CÔNG CỤ ${tool}]:\n${toolOutput}\n\n[CHỈ ĐẠO QUAN TRỌNG]: Dựa trên kết quả thực thi ở trên, hãy tự suy nghĩ và trò chuyện với ${senderName} một cách hoàn toàn tự nhiên như một người trợ lý thật sự (thấu hiểu, linh hoạt, giải thích rõ ràng, dí dỏm hoặc ân cần). Tuyệt đối KHÔNG sử dụng các câu văn mẫu dập khuôn, cứng nhắc hay vô hồn!`);
         } catch (e) {
           agentEvents.emit('tool_error', { error: e.message });
-          conversation.push(`[LỖI THỰC THI]: ${e.message}`);
+          conversation.push(`[LỖI THỰC THI CÔNG CỤ]: ${e.message}. Hãy giải thích khéo léo và tự nhiên cho người dùng biết.`);
         }
       } else {
-        // Save to short term memory
-        memoryStore.addMessage(chatId, 'user', userPrompt);
-        memoryStore.addMessage(chatId, 'assistant', responseText);
+        // Đã có câu trả lời tự nhiên từ AI
+        const cleanResponse = responseText.replace(/\{[\s\S]*?"tool"[\s\S]*?\}/g, '').trim();
 
-        agentEvents.emit('ai_response', { responseText, media: generatedMediaResult });
+        if (cleanResponse) {
+          memoryStore.addMessage(chatId, 'user', userPrompt);
+          memoryStore.addMessage(chatId, 'assistant', cleanResponse);
 
-        // Tự động học hỏi ngầm sau mỗi tin nhắn (Asynchronous Post-Interaction Reflection)
-        triggerPostMessageLearning(chatId, senderName, userPrompt, responseText).catch(() => {});
+          agentEvents.emit('ai_response', { responseText: cleanResponse, media: generatedMediaResult });
+          triggerPostMessageLearning(chatId, senderName, userPrompt, cleanResponse).catch(() => {});
 
-        return {
-          text: responseText,
-          media: generatedMediaResult
-        };
+          return {
+            text: cleanResponse,
+            media: generatedMediaResult
+          };
+        }
       }
     }
 
-    const fallbackResponse = `Em đã hoàn thành xử lý yêu cầu cho bạn rồi nhé!`;
-    memoryStore.addMessage(chatId, 'user', userPrompt);
-    memoryStore.addMessage(chatId, 'assistant', fallbackResponse);
+    // Nếu sau các vòng lặp vẫn chưa có văn bản cuối, AI tự tổng hợp lại một lần cuối
+    const finalCall = await generateContentWithFailover([
+      { text: conversation.join('\n\n') + `\n\n[YÊU CẦU]: Hãy tự suy nghĩ và viết một phản hồi tự nhiên, chân thành, có chiều sâu nhất gửi tới ${senderName}. Tuyệt đối không dùng câu dập khuôn!` }
+    ]);
+    const finalHumanText = finalCall.text.replace(/\{[\s\S]*?"tool"[\s\S]*?\}/g, '').trim();
 
-    triggerPostMessageLearning(chatId, senderName, userPrompt, fallbackResponse).catch(() => {});
+    memoryStore.addMessage(chatId, 'user', userPrompt);
+    memoryStore.addMessage(chatId, 'assistant', finalHumanText);
+    triggerPostMessageLearning(chatId, senderName, userPrompt, finalHumanText).catch(() => {});
 
     return {
-      text: fallbackResponse,
+      text: finalHumanText,
       media: generatedMediaResult
     };
   } catch (err) {
     agentEvents.emit('error', { error: err.message });
     return {
-      text: `⚠️ Rất tiếc, đã có trục trặc trong quá trình xử lý: ${err.message}`,
+      text: `Ôi, hình như vừa có chút trục trặc nhỏ trong lúc xử lý: ${err.message}. Bạn nhắn lại một câu giúp mình nhé!`,
       media: null
     };
   }

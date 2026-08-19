@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "zalo-bot": {
+      "command": "node",
+      "args": [
+        "C:\\Users\\HOMIE\\.gemini\\antigravity\\scratch\\zalo-bot-mcp\\index.js"
+      ],
+      "env": {
+        "ZALO_BOT_TOKEN": "1814765549758631539:fwyQQnqCQpKOkHjKTDkgYZzDyXodAFbVxOfjarpmSTdUtAeXPEYCsEOYFuXFQbNZ",
+        "ZALO_WEBHOOK_URL": "https://greeting-parkway-reflex.ngrok-free.dev/webhook/940868022467112918:isgiovguljmkmrerrbyhlwvqglpvgoceysyqqsrjfoynbzzvsektpyivkjzhxfvb",
+        "ZALO_SECRET_KEY": "uZ1PXGKOQfn-u5-zM2"
+      }
+    }
+  }
+}

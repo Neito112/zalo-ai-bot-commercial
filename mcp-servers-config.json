@@ -1,0 +1,21 @@
+{
+  "servers": {
+    "google_workspace": {
+      "enabled": true,
+      "status": "ACTIVE",
+      "installedAt": "2026-08-19T03:35:24.105Z"
+    },
+    "puppeteer": {
+      "name": "Browser Puppeteer MCP",
+      "package": "@modelcontextprotocol/server-puppeteer",
+      "enabled": true,
+      "status": "ACTIVE",
+      "installedAt": "2026-08-19T03:35:24.106Z",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ]
+    }
+  }
+}

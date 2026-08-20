@@ -15,9 +15,12 @@
   "dependencies": {
     "@google/genai": "^2.15.0",
     "@modelcontextprotocol/sdk": "^1.6.0",
+    "@travisvn/edge-tts": "^1.0.2",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "googleapis": "^176.0.0",
+    "xlsx": "^0.18.5",
     "zalo-bot-js": "^0.2.1"
   },
   "devDependencies": {

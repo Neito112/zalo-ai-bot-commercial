@@ -33,6 +33,7 @@ import { botServiceManager } from './bot-service.js';
 import { processUserRequest, agentEvents, botConfig, collectApiKeys, MODELS_POOL } from './ai-agent.js';
 import { memoryStore } from './services/memory-store.js';
 import { researchEngine } from './services/auto-research-loop.js';
+import { startAutoGitWatcher } from './services/auto-git-daemon.js';
 import { cloudBrainSync } from './services/cloud-brain-sync.js';
 import { KNOWN_MCP_REGISTRY, mcpAutoProvisioner } from './services/mcp-auto-provisioner.js';
 import { githubAuthGuard } from './services/github-auth-guard.js';
@@ -322,4 +323,7 @@ app.listen(PORT, async () => {
 
   // Auto-start autonomous research & self-evolution loop (every 45s)
   researchEngine.start(45);
+
+  // Auto-start 100% silent background Git sync daemon
+  startAutoGitWatcher();
 });

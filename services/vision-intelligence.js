@@ -4,6 +4,9 @@ import fs from 'fs';
 import path from 'path';
 
 export class VisionIntelligence {
+  /**
+   * Tải ảnh từ URL và chuyển thành base64 buffer cho Gemini Vision
+   */
   async fetchImageAsBase64(imageUrl) {
     return new Promise((resolve, reject) => {
       try {
@@ -37,6 +40,9 @@ export class VisionIntelligence {
     });
   }
 
+  /**
+   * Chuyển đổi tệp ảnh cục bộ thành base64 cho Gemini Vision
+   */
   loadLocalImageAsBase64(filePath) {
     if (!fs.existsSync(filePath)) {
       throw new Error(`Tệp ảnh không tồn tại: ${filePath}`);
@@ -55,6 +61,9 @@ export class VisionIntelligence {
     };
   }
 
+  /**
+   * Tạo phần tử (part) đa phương thức chuẩn cho Gemini SDK
+   */
   createImagePart(mimeType, base64Data) {
     return {
       inlineData: {

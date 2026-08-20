@@ -116,6 +116,7 @@ import { productPortfolio } from './services/product-portfolio-engine.js';
 import { cancelCultureShield } from './services/cancel-culture-shield-engine.js';
 import { cloudFinops } from './services/cloud-finops-engine.js';
 import { keyAccountJbp } from './services/key-account-jbp-engine.js';
+import { zeroTrustIam } from './services/zero-trust-iam-engine.js';
 import { errorRemediation } from './services/error-remediation-engine.js';
 
 // Global Event Broadcaster for Dashboard Logs
@@ -291,7 +292,8 @@ HỆ THỐNG CÔNG CỤ THỰC THI (FUNCTION CALLING):
 93. mitigate_cancel_culture_crisis: { crisisContext: "thông tin sự cố khủng hoảng", platformSpread?: "nền tảng lan truyền", severityLevel?: "mức độ nghiêm trọng" } -> Dập tắt khủng hoảng truyền thông mạng xã hội & làn sóng tẩy chay (Cancel Culture), thông điệp 3A trong 3 giờ vàng và lộ trình 90 ngày phục hồi niềm tin.
 94. audit_cloud_finops: { cloudContext: "thông tin hạ tầng cloud", currentSpend?: "chi phí hiện tại", targetReduction?: "mục tiêu tiết giảm" } -> Kiểm toán chi phí đám mây FinOps (AWS/GCP/Azure), phát hiện lãng phí tài nguyên, Rightsizing máy chủ và cam kết Savings Plans.
 95. structure_key_account_jbp: { accountContext: "thông tin tài khoản VIP", contractValue?: "quy mô hợp đồng", renewalTimeline?: "lộ trình tái ký" } -> Thiết lập kế hoạch kinh doanh đồng thuận JBP 3 năm cho khách hàng VIP Enterprise, ma trận cổ đông đa tầng và bảo vệ tái ký hợp đồng nhiều năm.
-96. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
+96. audit_zero_trust_iam: { iamContext: "thông tin hệ thống IAM", companyScale?: "quy mô doanh nghiệp", complianceTarget?: "tiêu chuẩn mục tiêu" } -> Thẩm định kiến trúc bảo mật Zero-Trust IAM, phân quyền tối thiểu (Least Privilege), quản trị tài khoản đặc quyền PAM và thu hồi quyền tự động SCIM.
+97. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
 
 CÁCH THỨC XUẤT LỆNH:
 - Khi cần dùng công cụ: Xuất DUY NHẤT một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
@@ -911,6 +913,9 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
           } else if (tool === 'structure_key_account_jbp') {
             const jbpRes = await keyAccountJbp.structureKeyAccountJbp(args.accountContext || userPrompt, args.contractValue || 'Khách hàng VIP Enterprise', args.renewalTimeline || 'Kỳ tái ký 180 ngày');
             toolOutput = jbpRes.success ? jbpRes.report : `Lỗi lập kế hoạch JBP: ${jbpRes.error}`;
+          } else if (tool === 'audit_zero_trust_iam') {
+            const iamRes = await zeroTrustIam.auditZeroTrustIam(args.iamContext || userPrompt, args.companyScale || 'Doanh nghiệp SMB', args.complianceTarget || 'SOC 2 & ISO 27001');
+            toolOutput = iamRes.success ? iamRes.report : `Lỗi thẩm định Zero-Trust IAM: ${iamRes.error}`;
           } else if (tool === 'call_dynamic_mcp') {
             const { serverName, toolName, mcpArgs } = args;
             toolOutput = await callDynamicMcpTool(serverName, toolName, mcpArgs);

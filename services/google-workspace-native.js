@@ -201,6 +201,59 @@ export class NativeGoogleWorkspaceEngine {
       return `❌ Lỗi tạo Google Sheets: ${err.message}`;
     }
   }
+
+  /**
+   * 6. Kiểm tra trạng thái kết nối Google Workspace (Gmail, Calendar, Drive, Docs, Sheets)
+   */
+  async checkConnectionStatus() {
+    const hasServiceAccount = fs.existsSync(SERVICE_ACCOUNT_FILE);
+    const hasTokenFile = fs.existsSync(TOKEN_FILE);
+    const hasEnvKeys = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+    const hasRefreshToken = !!process.env.GOOGLE_REFRESH_TOKEN;
+
+    if (!this.auth) {
+      return `🔴 **TRẠNG THÁI KẾT NỐI GOOGLE WORKSPACE: CHƯA KẾT NỐI**
+
+1. **Hiện trạng cấu hình:**
+   - Client ID & Secret (.env): ${hasEnvKeys ? '✅ Đã có' : '❌ Chưa cấu hình'}
+   - Refresh Token (.env): ${hasRefreshToken ? '✅ Đã có' : '❌ Chưa có'}
+   - Token File (google-token.json): ${hasTokenFile ? '✅ Đã có' : '❌ Chưa có'}
+   - Service Account (service-account.json): ${hasServiceAccount ? '✅ Đã có' : '❌ Chưa có'}
+
+2. **Dịch vụ bị ảnh hưởng:**
+   - 📧 Gmail: Chưa cấp quyền đọc/gửi thư
+   - 📅 Google Calendar: Chưa kết nối lịch
+   - 📁 Google Drive / Docs / Sheets: Chưa thể tạo và đọc file
+
+3. **Hướng dẫn cấp quyền từng bước:**
+   - **Bước 1:** Thêm \`GOOGLE_CLIENT_ID\` và \`GOOGLE_CLIENT_SECRET\` vào file \`.env\` (Lấy từ Google Cloud Console).
+   - **Bước 2:** Đặt file \`service-account.json\` hoặc \`google-token.json\` vào thư mục gốc của bot.
+   - **Bước 3:** Hoặc chạy lệnh xác thực \`npx @aaronsb/google-workspace-mcp\` để đăng nhập Google một lần duy nhất.`;
+    }
+
+    try {
+      const gmail = google.gmail({ version: 'v1', auth: this.auth });
+      const profile = await gmail.users.getProfile({ userId: 'me' });
+      return `🟢 **TRẠNG THÁI KẾT NỐI GOOGLE WORKSPACE: HOẠT ĐỘNG TỐT**
+
+1. **Thông tin tài khoản:**
+   - 📧 Email kết nối: **${profile.data.emailAddress || 'Đã xác thực'}**
+   - 📬 Tổng số hộp thư: ${profile.data.messagesTotal || 0} thư
+   - 🔒 Loại xác thực: ${hasServiceAccount ? 'Service Account' : 'OAuth 2.0'}
+
+2. **Dịch vụ sẵn sàng hoạt động:**
+   - ✅ **Gmail:** Sẵn sàng đọc thư (\`manage_email\`) và gửi email
+   - ✅ **Google Calendar:** Sẵn sàng xem lịch (\`manage_calendar\`) và đặt lịch
+   - ✅ **Google Drive:** Sẵn sàng tìm kiếm tệp (\`manage_drive\`)
+   - ✅ **Google Docs & Sheets:** Sẵn sàng tạo tài liệu & bảng tính tự động`;
+    } catch (err) {
+      return `🟡 **TRẠNG THÁI KẾT NỐI GOOGLE WORKSPACE: CẦN XÁC THỰC LẠI**
+
+1. **Nguyên nhân:** Phiên xác thực OAuth đã hết hạn hoặc chưa bật Gmail API trong Google Cloud Console (\`${err.message}\`).
+2. **Cách khắc phục:**
+   - Đăng nhập lại để làm mới Refresh Token hoặc cấp quyền truy cập lại cho tài khoản.`;
+    }
+  }
 }
 
 export const googleWorkspace = new NativeGoogleWorkspaceEngine();

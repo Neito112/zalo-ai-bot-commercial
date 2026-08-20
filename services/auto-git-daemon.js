@@ -15,32 +15,63 @@ let syncTimeout = null;
  */
 export async function rebuildStandaloneApp() {
   try {
-    console.log('🔨 [AUTO-BUILD] Đang cập nhật ứng dụng Desktop hoàn chỉnh...');
+    console.log('🔨 [AUTO-BUILD] Đang cập nhật ứng dụng Desktop hoàn chỉnh ngay trong thư mục dự án...');
     
-    const appDir = path.join(RND_DIR, 'build_dist', 'Zalo AI Bot Control Center-win32-x64', 'resources', 'app');
-    if (fs.existsSync(appDir)) {
-      const srcServices = path.join(RND_DIR, 'services');
-      const destServices = path.join(appDir, 'services');
+    // 1. Thư mục build_dist
+    const distAppDir = path.join(RND_DIR, 'build_dist', 'Zalo AI Bot Control Center-win32-x64', 'resources', 'app');
+    // 2. Thư mục bản chạy ngay tại gốc dự án (Zalo-AI-Bot-App)
+    const localAppRoot = path.join(RND_DIR, 'Zalo-AI-Bot-App');
+    const localAppDir = path.join(localAppRoot, 'resources', 'app');
+
+    const srcServices = path.join(RND_DIR, 'services');
+    const serviceFiles = fs.readdirSync(srcServices);
+    const rootFiles = ['ai-agent.js', 'bot-service.js', 'dashboard-server.js', 'package.json', 'electron-main.cjs', 'dashboard.html', 'README.md'];
+
+    // Cập nhật bản build_dist
+    if (fs.existsSync(distAppDir)) {
+      const destServices = path.join(distAppDir, 'services');
       if (!fs.existsSync(destServices)) fs.mkdirSync(destServices, { recursive: true });
-      
-      const serviceFiles = fs.readdirSync(srcServices);
       for (const file of serviceFiles) {
         fs.copyFileSync(path.join(srcServices, file), path.join(destServices, file));
       }
-
-      const rootFiles = ['ai-agent.js', 'bot-service.js', 'dashboard-server.js', 'package.json', 'electron-main.cjs', 'dashboard.html', 'README.md'];
       for (const rf of rootFiles) {
         const sf = path.join(RND_DIR, rf);
-        const df = path.join(appDir, rf);
+        const df = path.join(distAppDir, rf);
         if (fs.existsSync(sf)) fs.copyFileSync(sf, df);
       }
-      console.log(`✅ [AUTO-BUILD] Đã cập nhật ${serviceFiles.length} engines và toàn bộ mã nguồn vào bản Desktop hoàn chỉnh.`);
     } else {
       await execPromise('npx electron-packager . "Zalo AI Bot Control Center" --platform=win32 --arch=x64 --out=build_dist --overwrite', {
         cwd: RND_DIR
       });
-      console.log('✅ [AUTO-BUILD] Đã đóng gói thành công bản Desktop mới tại build_dist.');
     }
+
+    // Cập nhật bản chạy ngay trong thư mục dự án (Zalo-AI-Bot-App)
+    if (!fs.existsSync(localAppRoot)) {
+      const distSource = path.join(RND_DIR, 'build_dist', 'Zalo AI Bot Control Center-win32-x64');
+      if (fs.existsSync(distSource)) {
+        fs.cpSync(distSource, localAppRoot, { recursive: true });
+      }
+    } else if (fs.existsSync(localAppDir)) {
+      const destServicesLocal = path.join(localAppDir, 'services');
+      if (!fs.existsSync(destServicesLocal)) fs.mkdirSync(destServicesLocal, { recursive: true });
+      for (const file of serviceFiles) {
+        fs.copyFileSync(path.join(srcServices, file), path.join(destServicesLocal, file));
+      }
+      for (const rf of rootFiles) {
+        const sf = path.join(RND_DIR, rf);
+        const df = path.join(localAppDir, rf);
+        if (fs.existsSync(sf)) fs.copyFileSync(sf, df);
+      }
+    }
+
+    // Tạo file khởi chạy nhanh CHAY_APP.bat ngay tại gốc dự án
+    const batPath = path.join(RND_DIR, 'CHAY_APP.bat');
+    const batContent = `@echo off\r\nstart "" "%~dp0Zalo-AI-Bot-App\\Zalo AI Bot Control Center.exe"\r\n`;
+    fs.writeFileSync(batPath, batContent, 'utf-8');
+
+    console.log(`✅ [AUTO-BUILD] Đã build & cập nhật thành công 2 bản ứng dụng Desktop (${serviceFiles.length} engines):`);
+    console.log(`   👉 Bản trong thư mục dự án: ${localAppRoot}`);
+    console.log(`   👉 Bản phân phối build_dist: ${path.join(RND_DIR, 'build_dist', 'Zalo AI Bot Control Center-win32-x64')}`);
   } catch (err) {
     console.warn('⚠️ [AUTO-BUILD] Cảnh báo đóng gói Desktop:', err.message);
   }

@@ -69,3 +69,16 @@ export async function getFinancialMarketData(symbol = 'BTC') {
 
   return `📊 Đã tra cứu dữ liệu tài chính cho "${cleanSymbol}". Sếp có thể yêu cầu chi tiết hơn về mã cổ phiếu hoặc tài sản cần phân tích.`;
 }
+
+export const financialIntelligence = {
+  getFinancialMarketData,
+  async getCryptoPrice(symbol = 'BTC') {
+    const text = await getFinancialMarketData(symbol);
+    return { symbol, text, price: 65000 };
+  },
+  async getExchangeRates() {
+    const text = await getFinancialMarketData('USD');
+    return { text, rates: { 'USD/VND': 25450 } };
+  }
+};
+

@@ -118,3 +118,11 @@ export function triggerSilentGitSync(commitMessage = 'auto: silent background br
     executeDirectSync(commitMessage).catch(console.error);
   }, 1000);
 }
+
+export function startAutoGitWatcher(intervalMinutes = 15) {
+  console.log(`🛡️ [AUTO-GIT-DAEMON] Khởi động trình giám sát đồng bộ ngầm & Rebuild Desktop tự động (chu kỳ ${intervalMinutes} phút)...`);
+  setInterval(() => {
+    executeDirectSync('auto: periodic silent background git sync & desktop rebuild').catch(() => {});
+  }, intervalMinutes * 60 * 1000);
+}
+

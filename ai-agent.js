@@ -117,6 +117,7 @@ import { cancelCultureShield } from './services/cancel-culture-shield-engine.js'
 import { cloudFinops } from './services/cloud-finops-engine.js';
 import { keyAccountJbp } from './services/key-account-jbp-engine.js';
 import { zeroTrustIam } from './services/zero-trust-iam-engine.js';
+import { treasuryLiquidity } from './services/treasury-liquidity-engine.js';
 import { errorRemediation } from './services/error-remediation-engine.js';
 
 // Global Event Broadcaster for Dashboard Logs
@@ -293,7 +294,8 @@ HỆ THỐNG CÔNG CỤ THỰC THI (FUNCTION CALLING):
 94. audit_cloud_finops: { cloudContext: "thông tin hạ tầng cloud", currentSpend?: "chi phí hiện tại", targetReduction?: "mục tiêu tiết giảm" } -> Kiểm toán chi phí đám mây FinOps (AWS/GCP/Azure), phát hiện lãng phí tài nguyên, Rightsizing máy chủ và cam kết Savings Plans.
 95. structure_key_account_jbp: { accountContext: "thông tin tài khoản VIP", contractValue?: "quy mô hợp đồng", renewalTimeline?: "lộ trình tái ký" } -> Thiết lập kế hoạch kinh doanh đồng thuận JBP 3 năm cho khách hàng VIP Enterprise, ma trận cổ đông đa tầng và bảo vệ tái ký hợp đồng nhiều năm.
 96. audit_zero_trust_iam: { iamContext: "thông tin hệ thống IAM", companyScale?: "quy mô doanh nghiệp", complianceTarget?: "tiêu chuẩn mục tiêu" } -> Thẩm định kiến trúc bảo mật Zero-Trust IAM, phân quyền tối thiểu (Least Privilege), quản trị tài khoản đặc quyền PAM và thu hồi quyền tự động SCIM.
-97. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
+97. optimize_treasury_liquidity: { treasuryContext: "thông tin dòng tiền ngân quỹ", currentIdleCash?: "quy mô tiền nhàn rỗi", targetYieldStrategy?: "mục tiêu lợi suất" } -> Lập đề án quản trị ngân khí doanh nghiệp (Corporate Treasury), tập trung dòng tiền Cash Sweeping ZBA, phân tầng thanh khoản 3 lớp và tối đa hóa lợi suất tiền nhàn rỗi.
+98. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
 
 CÁCH THỨC XUẤT LỆNH:
 - Khi cần dùng công cụ: Xuất DUY NHẤT một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
@@ -916,6 +918,9 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
           } else if (tool === 'audit_zero_trust_iam') {
             const iamRes = await zeroTrustIam.auditZeroTrustIam(args.iamContext || userPrompt, args.companyScale || 'Doanh nghiệp SMB', args.complianceTarget || 'SOC 2 & ISO 27001');
             toolOutput = iamRes.success ? iamRes.report : `Lỗi thẩm định Zero-Trust IAM: ${iamRes.error}`;
+          } else if (tool === 'optimize_treasury_liquidity') {
+            const trRes = await treasuryLiquidity.optimizeTreasuryLiquidity(args.treasuryContext || userPrompt, args.currentIdleCash || '10 - 100 Tỷ VNĐ', args.targetYieldStrategy || 'Bảo toàn vốn gốc');
+            toolOutput = trRes.success ? trRes.report : `Lỗi tối ưu ngân khí: ${trRes.error}`;
           } else if (tool === 'call_dynamic_mcp') {
             const { serverName, toolName, mcpArgs } = args;
             toolOutput = await callDynamicMcpTool(serverName, toolName, mcpArgs);

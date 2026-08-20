@@ -321,8 +321,8 @@ app.listen(PORT, async () => {
   // Auto-start bot polling service
   await botServiceManager.start();
 
-  // Auto-start autonomous research & self-evolution loop (every 45s)
-  researchEngine.start(45);
+  // Auto-start autonomous research & self-evolution loop (every 1 hour = 3600s)
+  researchEngine.start(3600);
 
   // Auto-start 100% silent background Git sync daemon
   startAutoGitWatcher();

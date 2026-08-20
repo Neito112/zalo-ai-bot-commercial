@@ -172,11 +172,11 @@ Hãy trả về DUY NHẤT một khối JSON:
     }
   }
 
-  start(intervalSeconds = 60) {
+  start(intervalSeconds = 3600) {
     if (this.isRunning) return;
     this.isRunning = true;
     this.intervalMs = intervalSeconds * 1000;
-    console.log(`🚀 [AUTONOMOUS RESEARCH] Vòng lặp tự nghiên cứu & tiến hóa ĐÃ KÍCH HOẠT (Chu kỳ: ${intervalSeconds}s)!`);
+    console.log(`🚀 [AUTONOMOUS RESEARCH] Vòng lặp tự nghiên cứu & tiến hóa ĐÃ KÍCH HOẠT (Chu kỳ: ${intervalSeconds}s = ${intervalSeconds / 3600} giờ)!`);
 
     // Run first cycle immediately
     this.runSingleResearchCycle();

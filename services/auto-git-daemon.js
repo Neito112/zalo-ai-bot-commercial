@@ -10,6 +10,42 @@ const COMM_DIR = path.resolve('c:/Users/HOMIE/Downloads/zalo-bot-commercial');
 let isSyncing = false;
 let syncTimeout = null;
 
+/**
+ * Tự động đồng bộ và cập nhật bản ứng dụng Desktop hoàn chỉnh sau mỗi chu kỳ nghiên cứu
+ */
+export async function rebuildStandaloneApp() {
+  try {
+    console.log('🔨 [AUTO-BUILD] Đang cập nhật ứng dụng Desktop hoàn chỉnh...');
+    
+    const appDir = path.join(RND_DIR, 'build_dist', 'Zalo AI Bot Control Center-win32-x64', 'resources', 'app');
+    if (fs.existsSync(appDir)) {
+      const srcServices = path.join(RND_DIR, 'services');
+      const destServices = path.join(appDir, 'services');
+      if (!fs.existsSync(destServices)) fs.mkdirSync(destServices, { recursive: true });
+      
+      const serviceFiles = fs.readdirSync(srcServices);
+      for (const file of serviceFiles) {
+        fs.copyFileSync(path.join(srcServices, file), path.join(destServices, file));
+      }
+
+      const rootFiles = ['ai-agent.js', 'bot-service.js', 'dashboard-server.js', 'package.json', 'electron-main.cjs', 'dashboard.html', 'README.md'];
+      for (const rf of rootFiles) {
+        const sf = path.join(RND_DIR, rf);
+        const df = path.join(appDir, rf);
+        if (fs.existsSync(sf)) fs.copyFileSync(sf, df);
+      }
+      console.log(`✅ [AUTO-BUILD] Đã cập nhật ${serviceFiles.length} engines và toàn bộ mã nguồn vào bản Desktop hoàn chỉnh.`);
+    } else {
+      await execPromise('npx electron-packager . "Zalo AI Bot Control Center" --platform=win32 --arch=x64 --out=build_dist --overwrite', {
+        cwd: RND_DIR
+      });
+      console.log('✅ [AUTO-BUILD] Đã đóng gói thành công bản Desktop mới tại build_dist.');
+    }
+  } catch (err) {
+    console.warn('⚠️ [AUTO-BUILD] Cảnh báo đóng gói Desktop:', err.message);
+  }
+}
+
 export async function executeDirectSync(commitMessage = 'auto: silent background brain & capabilities synchronization') {
   if (isSyncing) return;
   isSyncing = true;
@@ -17,6 +53,9 @@ export async function executeDirectSync(commitMessage = 'auto: silent background
   try {
     const timeStr = new Date().toLocaleString('vi-VN');
     const fullMsg = `${commitMessage} (${timeStr})`;
+
+    // 0. Tự động build lại bản ứng dụng Desktop hoàn chỉnh
+    await rebuildStandaloneApp();
 
     // 1. Sync R&D Repo
     if (fs.existsSync(RND_DIR)) {

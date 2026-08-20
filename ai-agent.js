@@ -120,6 +120,7 @@ import { zeroTrustIam } from './services/zero-trust-iam-engine.js';
 import { treasuryLiquidity } from './services/treasury-liquidity-engine.js';
 import { patentMonetization } from './services/patent-monetization-engine.js';
 import { strategicProcurement } from './services/strategic-procurement-engine.js';
+import { boardroomGovernance } from './services/boardroom-governance-engine.js';
 import { errorRemediation } from './services/error-remediation-engine.js';
 
 // Global Event Broadcaster for Dashboard Logs
@@ -299,7 +300,8 @@ HỆ THỐNG CÔNG CỤ THỰC THI (FUNCTION CALLING):
 97. optimize_treasury_liquidity: { treasuryContext: "thông tin dòng tiền ngân quỹ", currentIdleCash?: "quy mô tiền nhàn rỗi", targetYieldStrategy?: "mục tiêu lợi suất" } -> Lập đề án quản trị ngân khí doanh nghiệp (Corporate Treasury), tập trung dòng tiền Cash Sweeping ZBA, phân tầng thanh khoản 3 lớp và tối đa hóa lợi suất tiền nhàn rỗi.
 98. monetize_patent_portfolio: { ipContext: "thông tin tài sản trí tuệ", monetizationGoal?: "mục tiêu thương mại hóa", industrySector?: "lĩnh vực ngành nghề" } -> Lập đề án thương mại hóa bằng sáng chế / sở hữu trí tuệ (IP Monetization), phân tích Freedom-to-Operate (FTO), định mức phí Royalty và hợp đồng cấp phép bản quyền Licensing.
 99. structure_strategic_rfp: { procurementContext: "thông tin gói thầu", procurementScale?: "quy mô gói thầu", evaluationCriteria?: "tiêu chí đánh giá" } -> Thiết lập hồ sơ đấu thầu chiến lược (RFP), ma trận chấm điểm nhà thầu có trọng số, mô hình tổng chi phí sở hữu TCO và chiến lược đàm phán BAFO ép giá.
-100. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
+100. orchestrate_boardroom_meeting: { meetingContext: "thông tin cuộc họp", meetingType?: "loại hình cuộc họp", governanceTarget?: "tiêu chuẩn quản trị" } -> Thiết lập hồ sơ quản trị cuộc họp HĐQT / ĐHĐCĐ (Boardroom Governance), chương trình nghị sự chiến lược Board Pack, ma trận biểu quyết Reserved Matters và kiểm soát giao dịch bên liên quan RPT.
+101. save_user_memory: { key: "thông_tin", value: "nội_dung" } -> Ghi nhớ dữ liệu người dùng.
 
 CÁCH THỨC XUẤT LỆNH:
 - Khi cần dùng công cụ: Xuất DUY NHẤT một khối JSON: {"tool": "tên_công_cụ", "args": {...}}
@@ -931,6 +933,9 @@ export async function processUserRequest(userPrompt, senderName = 'Người dùn
           } else if (tool === 'structure_strategic_rfp') {
             const rfpRes = await strategicProcurement.structureStrategicRfp(args.procurementContext || userPrompt, args.procurementScale || 'Hợp đồng 500K$ - 5M$', args.evaluationCriteria || 'Kỹ thuật 40%, TCO 35%, SLA 25%');
             toolOutput = rfpRes.success ? rfpRes.report : `Lỗi lập hồ sơ đấu thầu: ${rfpRes.error}`;
+          } else if (tool === 'orchestrate_boardroom_meeting') {
+            const bdmRes = await boardroomGovernance.orchestrateBoardroomMeeting(args.meetingContext || userPrompt, args.meetingType || 'Họp HĐQT Định Kỳ', args.governanceTarget || 'Luật Doanh nghiệp 2020 & OECD');
+            toolOutput = bdmRes.success ? bdmRes.report : `Lỗi quản trị cuộc họp HĐQT: ${bdmRes.error}`;
           } else if (tool === 'call_dynamic_mcp') {
             const { serverName, toolName, mcpArgs } = args;
             toolOutput = await callDynamicMcpTool(serverName, toolName, mcpArgs);
